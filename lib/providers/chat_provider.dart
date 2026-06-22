@@ -34,9 +34,18 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  static const int _maxInputLength = 1000;
+
   Future<void> sendMessage(String text) async {
     // Lock acquired synchronously before any await — prevents spam-tap races.
     if (text.trim().isEmpty || _isSending) return;
+    if (text.trim().length > _maxInputLength) {
+      _messages.add(MessageModel.aiMessage(
+        'پیام شما بیش از $_maxInputLength کاراکتر است. لطفاً آن را کوتاه‌تر کنید.',
+      ));
+      notifyListeners();
+      return;
+    }
     _isSending = true;
 
     final MessageModel userMsg = MessageModel.userMessage(text.trim());
