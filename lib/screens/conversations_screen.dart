@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/conversation_model.dart';
 import '../providers/auth_provider.dart';
@@ -366,6 +367,9 @@ class _EmptyConversations extends StatelessWidget {
 
 // ── Sidebar ───────────────────────────────────────────────────────────────
 
+// ⚠️ USER ACTION REQUIRED: replace with the live privacy-policy URL before release.
+const String _kPrivacyPolicyUrl = '<PRIVACY_POLICY_URL>';
+
 class _Sidebar extends StatelessWidget {
   const _Sidebar();
 
@@ -414,7 +418,13 @@ class _Sidebar extends StatelessWidget {
               _DrawerTile(
                 icon: Icons.shield_outlined,
                 label: 'حریم خصوصی',
-                onTap: () => Navigator.pop(context),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await launchUrl(
+                    Uri.parse(_kPrivacyPolicyUrl),
+                    mode: LaunchMode.externalApplication,
+                  );
+                },
               ),
               const Spacer(),
               if (auth.isSignedIn)
