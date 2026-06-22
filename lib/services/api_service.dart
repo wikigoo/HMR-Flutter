@@ -20,9 +20,15 @@ class ApiService {
   /// returns the AI's answer text extracted from the `text` field of the
   /// JSON response.
   ///
+  /// [sessionId] is passed inside `overrideConfig` so Flowise can maintain
+  /// per-conversation memory across requests.
+  ///
   /// Throws an [ApiException] with a Persian user-facing error message on
   /// any failure (timeout, network error, non-200 status, malformed response).
-  Future<String> sendMessage(String question) async {
+  Future<String> sendMessage(
+    String question, {
+    required String sessionId,
+  }) async {
     final Uri url = Uri.parse(
       '$_baseUrl/api/v1/prediction/$_chatflowId',
     );
@@ -34,6 +40,10 @@ class ApiService {
 
     final Map<String, dynamic> body = {
       'question': question,
+      'streaming': false,
+      'overrideConfig': {
+        'sessionId': sessionId,
+      },
     };
 
     try {

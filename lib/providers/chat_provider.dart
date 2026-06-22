@@ -60,7 +60,10 @@ class ChatProvider extends ChangeNotifier {
     }
 
     try {
-      final String aiText = await _api.sendMessage(text.trim());
+      final String aiText = await _api.sendMessage(
+        text.trim(),
+        sessionId: conversationId,
+      );
       final MessageModel aiMsg = MessageModel.aiMessage(aiText);
       _messages.add(aiMsg);
       try {
