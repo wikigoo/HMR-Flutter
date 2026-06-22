@@ -214,9 +214,10 @@ class _AppBar extends StatelessWidget {
           _GhostIconButton(
             icon: Icons.arrow_back_ios_new,
             onTap: () => Navigator.maybePop(context),
+            label: 'بازگشت',
           ),
           const Expanded(child: _BrandIdentity()),
-          _GhostIconButton(icon: Icons.delete_sweep_outlined, onTap: onClear),
+          _GhostIconButton(icon: Icons.delete_sweep_outlined, onTap: onClear, label: 'پاک کردن گفتگو'),
         ],
       ),
     );
@@ -262,15 +263,17 @@ class _BrandIdentity extends StatelessWidget {
 }
 
 class _GhostIconButton extends StatelessWidget {
-  const _GhostIconButton({required this.icon, required this.onTap});
+  const _GhostIconButton({required this.icon, required this.onTap, required this.label});
 
   final IconData icon;
   final VoidCallback onTap;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
+      label: label,
       child: GestureDetector(
         onTap: onTap,
         child: ClipOval(
