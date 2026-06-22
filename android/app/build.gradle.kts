@@ -36,7 +36,7 @@ val hasSigningConfig = listOf(releaseAlias, releaseKeyPwd, releaseStorePwd, rele
 
 android {
     namespace = "ir.hmrbot.app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = "30.0.14904198"
     buildToolsVersion = "36.1.0"
 
@@ -59,7 +59,7 @@ android {
     defaultConfig {
         applicationId = "ir.hmrbot.app"
         minSdk = 21
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
