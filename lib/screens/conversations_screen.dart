@@ -236,12 +236,16 @@ class _ConversationTile extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: <Widget>[
-                      GestureDetector(
-                        onTap: onDelete,
-                        child: const Icon(
-                          Icons.delete_outline_rounded,
-                          size: 16,
-                          color: Color(0x80FF8597),
+                      Semantics(
+                        button: true,
+                        label: 'حذف گفت‌وگو',
+                        child: GestureDetector(
+                          onTap: onDelete,
+                          child: const Icon(
+                            Icons.delete_outline_rounded,
+                            size: 16,
+                            color: Color(0x80FF8597),
+                          ),
                         ),
                       ),
                       const Spacer(),
@@ -277,32 +281,36 @@ class _NewChatButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 58,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          gradient: AppTheme.neon,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: AppTheme.sendGlow,
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(Icons.add_rounded, size: 22, color: Colors.white),
-            SizedBox(width: 8),
-            Text(
-              'گفت‌وگوی جدید',
-              style: TextStyle(
-                fontFamily: AppTheme.fontFa,
-                fontSize: 14.5,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+    return Semantics(
+      button: true,
+      label: 'گفت‌وگوی جدید',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 58,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: AppTheme.neon,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: AppTheme.sendGlow,
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(Icons.add_rounded, size: 22, color: Colors.white),
+              SizedBox(width: 8),
+              Text(
+                'گفت‌وگوی جدید',
+                style: TextStyle(
+                  fontFamily: AppTheme.fontFa,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

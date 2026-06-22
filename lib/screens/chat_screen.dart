@@ -269,21 +269,24 @@ class _GhostIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipOval(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppTheme.inputFill,
-              border: Border.all(color: AppTheme.ghostBorder, width: 0.8),
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: ClipOval(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.inputFill,
+                border: Border.all(color: AppTheme.ghostBorder, width: 0.8),
+              ),
+              child: Icon(icon, size: 18, color: const Color(0xFFD6D6F2)),
             ),
-            child: Icon(icon, size: 18, color: const Color(0xFFD6D6F2)),
           ),
         ),
       ),
@@ -454,24 +457,29 @@ class _SendButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool loading = context.watch<ChatProvider>().isLoading;
-    return GestureDetector(
-      onTap: loading ? null : onSend,
-      child: Container(
-        width: 46,
-        height: 46,
-        alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: AppTheme.neon,
-          boxShadow: AppTheme.sendGlow,
+    return Semantics(
+      button: true,
+      label: 'ارسال پیام',
+      enabled: !loading,
+      child: GestureDetector(
+        onTap: loading ? null : onSend,
+        child: Container(
+          width: 46,
+          height: 46,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: AppTheme.neon,
+            boxShadow: AppTheme.sendGlow,
+          ),
+          child: loading
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                )
+              : const Icon(Icons.arrow_upward_rounded, size: 24, color: Colors.white),
         ),
-        child: loading
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-              )
-            : const Icon(Icons.arrow_upward_rounded, size: 24, color: Colors.white),
       ),
     );
   }
