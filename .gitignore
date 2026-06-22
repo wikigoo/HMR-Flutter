@@ -1,4 +1,5 @@
 .env
+*.env
 
 # Flutter/Dart
 .dart_tool/
@@ -8,12 +9,19 @@
 build/
 *.iml
 
+# Logs
+flutter_01.log
+flutter_*.log
+
 # Android
 android/build/
 android/.gradle/
 android/local.properties
 android/captures/
-android/key.jks
+# Signing secrets — NEVER commit these
+android/key.properties
+android/app/*.jks
+android/app/google-services.json
 
 # iOS
 ios/Pods/
