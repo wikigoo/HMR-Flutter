@@ -476,7 +476,7 @@ class _AccountCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             const Text(
-              'با ورود، گفت‌وگوهایت بین دستگاه‌ها همگام می‌شوند.',
+              'گفت‌وگوهای شما به‌صورت امن روی همین دستگاه ذخیره می‌شوند.',
               textAlign: TextAlign.right,
               style: AppTheme.tilePreview,
             ),
