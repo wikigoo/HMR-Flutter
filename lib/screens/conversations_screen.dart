@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../models/conversation_model.dart';
 import '../providers/auth_provider.dart';
+import '../utils/jalali.dart';
 import '../providers/chat_provider.dart';
 import '../providers/conversations_provider.dart';
 import '../theme/app_theme.dart';
@@ -262,7 +263,7 @@ class _ConversationTile extends StatelessWidget {
     if (diff.inHours < 24 && now.day == dt.day) return 'امروز';
     if (diff.inDays <= 1) return 'دیروز';
     if (diff.inDays < 7) return '${diff.inDays} روز پیش';
-    return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
+    return jalaliLabel(dt);
   }
 }
 
