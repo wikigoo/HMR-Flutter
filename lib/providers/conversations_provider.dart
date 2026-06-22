@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../database/chat_database.dart';
 import '../models/conversation_model.dart';
-import '../models/message_model.dart';
 
 class ConversationsProvider extends ChangeNotifier {
   static const String _indexKey = 'conversations_index';
@@ -69,17 +69,17 @@ class ConversationsProvider extends ChangeNotifier {
 
   Future<void> deleteConversation(String id) async {
     _all.removeWhere((c) => c.id == id);
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('$_msgPrefix$id');
+    await Future.wait(<Future<void>>[
+      ChatDatabase.instance.deleteMessages(id),
+      _removeFromPrefs(id),
+    ]);
     await _saveIndex();
     notifyListeners();
   }
 
-  Future<List<MessageModel>> loadMessages(String conversationId) async {
+  Future<void> _removeFromPrefs(String id) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? raw = prefs.getString('$_msgPrefix$conversationId');
-    if (raw == null || raw.isEmpty) return [];
-    return MessageModel.decodeList(raw);
+    await prefs.remove('$_msgPrefix$id');
   }
 
   Future<void> _saveIndex() async {
