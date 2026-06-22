@@ -33,8 +33,8 @@ android {
 
     defaultConfig {
         applicationId = "ir.hmrbot.app"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 21
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
