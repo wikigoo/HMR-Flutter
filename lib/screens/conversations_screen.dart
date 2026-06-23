@@ -368,7 +368,7 @@ class _EmptyConversations extends StatelessWidget {
 // ── Sidebar ───────────────────────────────────────────────────────────────
 
 // ⚠️ USER ACTION REQUIRED: replace with the live privacy-policy URL before release.
-const String _kPrivacyPolicyUrl = '<PRIVACY_POLICY_URL>';
+const String _kPrivacyPolicyUrl = 'https://hmrbot.com/privacy';
 
 class _Sidebar extends StatelessWidget {
   const _Sidebar();
