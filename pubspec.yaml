@@ -20,6 +20,9 @@ dependencies:
   flutter_markdown: ^0.7.3
   google_sign_in: ^6.2.1
   url_launcher: ^6.3.0
+  uuid: ^4.5.1
+  connectivity_plus: ^6.1.4
+  sentry_flutter: ^8.14.0
 
 dev_dependencies:
   flutter_test:
@@ -54,6 +57,10 @@ flutter:
     - assets/images/hmr_text.png
 
   fonts:
+    - family: SpaceGrotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk-VF.ttf
+
     - family: Vazirmatn
       fonts:
         - asset: assets/fonts/Vazirmatn-Regular.ttf

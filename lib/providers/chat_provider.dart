@@ -18,8 +18,9 @@ class ChatProvider extends ChangeNotifier {
 
   List<MessageModel> _messages = [];
   bool _isLoading = false;
-  bool _isSending = false; // strict concurrency lock
+  bool _isSending = false;
   bool _metaUpdated = false;
+  String? _lastFailedText;
 
   List<MessageModel> get messages => List.unmodifiable(_messages);
   bool get isLoading => _isLoading;
@@ -37,7 +38,6 @@ class ChatProvider extends ChangeNotifier {
   static const int _maxInputLength = 1000;
 
   Future<void> sendMessage(String text) async {
-    // Lock acquired synchronously before any await — prevents spam-tap races.
     if (text.trim().isEmpty || _isSending) return;
     if (text.trim().length > _maxInputLength) {
       _messages.add(MessageModel.aiMessage(
@@ -53,7 +53,6 @@ class ChatProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // Persist user message immediately so it survives if the app is killed.
     try {
       await _db.insertMessage(conversationId, userMsg);
     } catch (e) {
@@ -68,11 +67,26 @@ class ChatProvider extends ChangeNotifier {
       onUpdate!(title, text.trim());
     }
 
+    await _callApi(text.trim());
+  }
+
+  Future<void> retryLastMessage() async {
+    final String? text = _lastFailedText;
+    if (text == null || _isSending) return;
+    _isSending = true;
+    if (_messages.isNotEmpty && _messages.last.isError) _messages.removeLast();
+    _isLoading = true;
+    notifyListeners();
+    await _callApi(text);
+  }
+
+  Future<void> _callApi(String text) async {
     try {
       final String aiText = await _api.sendMessage(
-        text.trim(),
+        text,
         sessionId: conversationId,
       );
+      _lastFailedText = null;
       final MessageModel aiMsg = MessageModel.aiMessage(aiText);
       _messages.add(aiMsg);
       try {
@@ -84,15 +98,19 @@ class ChatProvider extends ChangeNotifier {
         final String title = _messages.first.text.length > 45
             ? '${_messages.first.text.substring(0, 45)}...'
             : _messages.first.text;
-        final String preview = aiText.length > 60
-            ? '${aiText.substring(0, 60)}...'
-            : aiText;
+        final String preview =
+            aiText.length > 60 ? '${aiText.substring(0, 60)}...' : aiText;
         onUpdate!(title, preview);
       }
     } on ApiException catch (e) {
-      _messages.add(MessageModel.aiMessage(e.message));
+      _lastFailedText = text;
+      _messages.add(MessageModel.aiMessage(e.message, isError: true));
     } catch (_) {
-      _messages.add(MessageModel.aiMessage('خطای غیرمنتظره‌ای رخ داد.'));
+      _lastFailedText = text;
+      _messages.add(MessageModel.aiMessage(
+        'خطای غیرمنتظره‌ای رخ داد. لطفاً دوباره تلاش کنید.',
+        isError: true,
+      ));
     } finally {
       _isLoading = false;
       _isSending = false;
@@ -103,6 +121,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> clearHistory() async {
     _messages.clear();
     _metaUpdated = false;
+    _lastFailedText = null;
     notifyListeners();
     try {
       await _db.deleteMessages(conversationId);

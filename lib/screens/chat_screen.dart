@@ -8,8 +8,10 @@ import '../models/message_model.dart';
 import '../providers/chat_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/chat_bubble.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/hmr_avatar.dart';
 import '../widgets/hmr_background.dart';
+import '../widgets/price_disclaimer.dart';
 
 /// HMR Assistant — the single chat surface.
 class ChatScreen extends StatefulWidget {
@@ -46,7 +48,6 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.trim().isEmpty || chat.isLoading) return;
     chat.sendMessage(text);
     _input.clear();
-    _focus.unfocus();
     _scrollToEnd();
   }
 
@@ -90,7 +91,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _confirmClear() async {
     final bool? ok = await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) => const _ClearHistoryDialog(),
+      builder: (BuildContext ctx) => const ConfirmDialog(
+        title: 'پاک‌کردن گفت‌وگو',
+        body: 'همهٔ پیام‌های این گفت‌وگو حذف می‌شوند. این کار قابل بازگشت نیست.',
+        confirmLabel: 'پاک کن',
+      ),
     );
     if (ok ?? false) {
       if (!mounted) return;
@@ -114,6 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
               children: <Widget>[
                 _AppBar(onClear: _confirmClear),
                 Expanded(child: _messageList()),
+                const PriceDisclaimer(),
                 _Composer(
                   controller: _input,
                   focus: _focus,
@@ -147,7 +153,13 @@ class _ChatScreenState extends State<ChatScreen> {
           itemBuilder: (BuildContext context, int i) {
             if (typing == 1 && i == 0) return const _TypingDots();
             final MessageModel m = messages[messages.length - 1 - (i - typing)];
-            return ChatBubble(message: m, onCopy: () => _copy(m.text));
+            return ChatBubble(
+              message: m,
+              onCopy: () => _copy(m.text),
+              onRetry: m.isError
+                  ? () => context.read<ChatProvider>().retryLastMessage()
+                  : null,
+            );
           },
         );
       },
@@ -187,6 +199,8 @@ class _EmptyState extends StatelessWidget {
               textDirection: TextDirection.rtl,
               style: AppTheme.welcomeBody,
             ),
+            const SizedBox(height: 24),
+            const PriceDisclaimer(),
           ],
         ),
       ),
@@ -419,8 +433,7 @@ class _Composer extends StatelessWidget {
                     minLines: 1,
                     maxLines: 4,
                     textDirection: TextDirection.rtl,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => onSend(),
+                    textInputAction: TextInputAction.newline,
                     style: const TextStyle(
                       fontFamily: AppTheme.fontFa,
                       fontSize: 14,
@@ -488,94 +501,3 @@ class _SendButton extends StatelessWidget {
   }
 }
 
-/// Dark glass confirmation dialog for clearing the conversation.
-class _ClearHistoryDialog extends StatelessWidget {
-  const _ClearHistoryDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 40),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(22, 24, 22, 16),
-            decoration: BoxDecoration(
-              color: const Color(0xE00A1020),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppTheme.glassBorder, width: 0.8),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                const Text(
-                  'پاک‌کردن گفت‌وگو',
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontFamily: AppTheme.fontFa,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'همهٔ پیام‌های این گفت‌وگو حذف می‌شوند. این کار قابل بازگشت نیست.',
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontFamily: AppTheme.fontFa,
-                    fontSize: 13,
-                    height: 1.7,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text(
-                          'انصراف',
-                          style: TextStyle(
-                            fontFamily: AppTheme.fontFa,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        style: TextButton.styleFrom(
-                          backgroundColor: const Color(0x33FF5470),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: const BorderSide(color: Color(0x66FF5470), width: 0.8),
-                          ),
-                        ),
-                        child: const Text(
-                          'پاک کن',
-                          style: TextStyle(
-                            fontFamily: AppTheme.fontFa,
-                            color: Color(0xFFFF8597),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

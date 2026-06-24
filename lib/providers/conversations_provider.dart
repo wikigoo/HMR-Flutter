@@ -1,12 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import '../database/chat_database.dart';
 import '../models/conversation_model.dart';
 
 class ConversationsProvider extends ChangeNotifier {
   static const String _indexKey = 'conversations_index';
-  static const String _msgPrefix = 'hmr_chat_history_';
+  static const _uuid = Uuid();
 
   List<ConversationModel> _all = [];
   String _query = '';
@@ -41,7 +42,7 @@ class ConversationsProvider extends ChangeNotifier {
   Future<ConversationModel> createConversation() async {
     final DateTime now = DateTime.now();
     final ConversationModel conv = ConversationModel(
-      id: now.millisecondsSinceEpoch.toString(),
+      id: _uuid.v4(),
       title: 'گفتگوی جدید',
       createdAt: now,
       updatedAt: now,
@@ -69,17 +70,9 @@ class ConversationsProvider extends ChangeNotifier {
 
   Future<void> deleteConversation(String id) async {
     _all.removeWhere((c) => c.id == id);
-    await Future.wait(<Future<void>>[
-      ChatDatabase.instance.deleteMessages(id),
-      _removeFromPrefs(id),
-    ]);
+    await ChatDatabase.instance.deleteMessages(id);
     await _saveIndex();
     notifyListeners();
-  }
-
-  Future<void> _removeFromPrefs(String id) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('$_msgPrefix$id');
   }
 
   Future<void> _saveIndex() async {

@@ -16,6 +16,8 @@ class AuthProvider extends ChangeNotifier {
   GoogleSignInAccount? get user => _user;
   String? get error => _error;
 
+  String get userId => _user?.id ?? 'guest';
+
   String get displayName => _user?.displayName ?? 'کاربر';
   String get email => _user?.email ?? '';
   String? get photoUrl => _user?.photoUrl;
@@ -51,7 +53,7 @@ class AuthProvider extends ChangeNotifier {
       return account != null;
     } catch (e) {
       _isLoading = false;
-      _error = 'ورود ناموفق بود. مطمئن شوید Firebase تنظیم شده است.';
+      _error = 'ورود ناموفق بود. لطفاً اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.';
       notifyListeners();
       return false;
     }

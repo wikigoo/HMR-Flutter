@@ -14,6 +14,7 @@ flutter_01.log
 flutter_*.log
 
 # Android
+android/app/src/main/java/io/flutter/plugins/
 android/build/
 android/.gradle/
 android/local.properties

@@ -1,6 +1,10 @@
 import 'dart:convert';
 
+import 'package:uuid/uuid.dart';
+
 enum MessageRole { user, ai }
+
+const _uuid = Uuid();
 
 class MessageModel {
   const MessageModel({
@@ -8,12 +12,14 @@ class MessageModel {
     required this.text,
     required this.role,
     required this.timestamp,
+    this.isError = false,
   });
 
   final String id;
   final String text;
   final MessageRole role;
   final DateTime timestamp;
+  final bool isError;
 
   bool get isUser => role == MessageRole.user;
   bool get isAi => role == MessageRole.ai;
@@ -42,19 +48,20 @@ class MessageModel {
 
   factory MessageModel.userMessage(String text) {
     return MessageModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: _uuid.v4(),
       text: text,
       role: MessageRole.user,
       timestamp: DateTime.now(),
     );
   }
 
-  factory MessageModel.aiMessage(String text) {
+  factory MessageModel.aiMessage(String text, {bool isError = false}) {
     return MessageModel(
-      id: 'ai_${DateTime.now().millisecondsSinceEpoch}',
+      id: _uuid.v4(),
       text: text,
       role: MessageRole.ai,
       timestamp: DateTime.now(),
+      isError: isError,
     );
   }
 
@@ -64,6 +71,7 @@ class MessageModel {
       'text': text,
       'role': role == MessageRole.user ? 'user' : 'ai',
       'timestamp': timestamp.toIso8601String(),
+      'isError': isError,
     };
   }
 
@@ -73,6 +81,7 @@ class MessageModel {
       text: json['text'] as String,
       role: json['role'] == 'user' ? MessageRole.user : MessageRole.ai,
       timestamp: DateTime.parse(json['timestamp'] as String),
+      isError: json['isError'] as bool? ?? false,
     );
   }
 

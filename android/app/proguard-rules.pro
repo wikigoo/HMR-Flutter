@@ -7,3 +7,31 @@
 
 # App
 -keep class ir.hmrbot.app.** { *; }
+
+# Google Play Services / Sign-In
+# Classes are loaded via reflection by the GMS framework; stripping them
+# causes silent sign-in failures that only appear in release builds.
+-keep class com.google.android.gms.** { *; }
+-keep class com.google.android.gms.auth.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+-dontwarn com.google.android.gms.**
+
+# sqflite
+# SqflitePlugin registers itself via reflection on older AGP versions.
+-keep class com.tekartik.sqflite.** { *; }
+-dontwarn com.tekartik.sqflite.**
+
+# shared_preferences
+-keep class io.flutter.plugins.sharedpreferences.** { *; }
+-dontwarn io.flutter.plugins.sharedpreferences.**
+
+# AndroidX — kept broadly because many plugins depend on androidx internals
+# accessed via reflection (e.g. lifecycle, activity result APIs).
+-keep class androidx.lifecycle.** { *; }
+-keep class androidx.activity.** { *; }
+-keep class androidx.fragment.** { *; }
+-dontwarn androidx.**
+
+# url_launcher / Custom Tabs
+-keep class androidx.browser.customtabs.** { *; }
+-dontwarn androidx.browser.**

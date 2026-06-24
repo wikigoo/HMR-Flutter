@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../database/chat_database.dart';
 import '../models/conversation_model.dart';
 import '../providers/auth_provider.dart';
 import '../utils/jalali.dart';
 import '../providers/chat_provider.dart';
 import '../providers/conversations_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/hmr_avatar.dart';
 import '../widgets/hmr_background.dart';
 import 'chat_screen.dart';
@@ -56,7 +58,16 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
         ),
       ),
     );
-    await convs.loadConversations();
+    if (!mounted) return;
+    final bool hasMessages =
+        (await ChatDatabase.instance.fetchMessages(conv.id)).isNotEmpty;
+    if (!mounted) return;
+    if (hasMessages) {
+      await convs.loadConversations();
+    } else {
+      // User backed out without sending anything — silently remove the ghost.
+      await convs.deleteConversation(conv.id);
+    }
   }
 
   Future<void> _newConversation() async {
@@ -119,7 +130,19 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
             return _ConversationTile(
               conv: c,
               onTap: () => _openConversation(c),
-              onDelete: () => context.read<ConversationsProvider>().deleteConversation(c.id),
+              onDelete: () async {
+                final bool? ok = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => const ConfirmDialog(
+                    title: 'حذف گفت‌وگو',
+                    body: 'این گفت‌وگو برای همیشه حذف می‌شود.',
+                    confirmLabel: 'حذف',
+                  ),
+                );
+                if ((ok ?? false) && context.mounted) {
+                  context.read<ConversationsProvider>().deleteConversation(c.id);
+                }
+              },
             );
           },
         );
