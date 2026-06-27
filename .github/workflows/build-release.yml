@@ -27,6 +27,17 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      # Accept SDK licenses (the previous CI run failed on LicenceNotAcceptedException)
+      # and pre-install the exact toolchain that android/build.gradle.kts pins for every
+      # module, so the build does not stall trying to resolve missing components.
+      - name: Accept licenses & install required SDK packages
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "platforms;android-36" "build-tools;36.1.0" "ndk;30.0.14904198"
+
       - name: Install Flutter dependencies
         run: flutter pub get
 
