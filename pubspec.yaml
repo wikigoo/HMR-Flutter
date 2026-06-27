@@ -22,7 +22,7 @@ dependencies:
   url_launcher: ^6.3.0
   uuid: ^4.5.1
   connectivity_plus: ^6.1.4
-  sentry_flutter: ^8.14.0
+  sentry_flutter: 9.0.0
 
 dev_dependencies:
   flutter_test:
