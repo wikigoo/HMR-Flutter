@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/message_model.dart';
 import '../providers/chat_provider.dart';
@@ -88,6 +89,59 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  static const String _supportEmail = 'wikigoo58@gmail.com';
+
+  /// Report an AI answer (hallucination / inappropriate / wrong). Opens the
+  /// user's email app pre-filled with the flagged response. Falls back to
+  /// copying the support address if no mail client is available.
+  Future<void> _report(String text) async {
+    final String excerpt =
+        text.length > 1000 ? '${text.substring(0, 1000)}…' : text;
+    const String subject = 'گزارش پاسخ نامناسب — HMR';
+    final String body = 'سلام،\n'
+        'می‌خواهم این پاسخ هوش مصنوعی را گزارش کنم:\n\n'
+        '«$excerpt»\n\n'
+        'دلیل گزارش (لطفاً توضیح دهید): ';
+    final Uri mailto = Uri.parse(
+      'mailto:$_supportEmail'
+      '?subject=${Uri.encodeComponent(subject)}'
+      '&body=${Uri.encodeComponent(body)}',
+    );
+
+    bool opened = false;
+    try {
+      opened = await launchUrl(mailto, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened) {
+      await Clipboard.setData(const ClipboardData(text: _supportEmail));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(_snack('برنامه ایمیلی یافت نشد. آدرس پشتیبانی کپی شد: $_supportEmail'));
+    }
+  }
+
+  SnackBar _snack(String message) {
+    return SnackBar(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: const Color(0xE00A1020),
+      elevation: 0,
+      duration: const Duration(milliseconds: 2600),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(color: AppTheme.glowRing, width: 0.8),
+      ),
+      content: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+            fontFamily: AppTheme.fontFa, color: AppTheme.textBody, fontSize: 12.5),
+      ),
+    );
+  }
+
   Future<void> _confirmClear() async {
     final bool? ok = await showDialog<bool>(
       context: context,
@@ -159,6 +213,7 @@ class _ChatScreenState extends State<ChatScreen> {
               onRetry: m.isError
                   ? () => context.read<ChatProvider>().retryLastMessage()
                   : null,
+              onReport: m.isAi && !m.isError ? () => _report(m.text) : null,
             );
           },
         );

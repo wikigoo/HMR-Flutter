@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/message_model.dart';
@@ -15,11 +15,17 @@ class ChatBubble extends StatelessWidget {
     required this.message,
     required this.onCopy,
     this.onRetry,
+    this.onReport,
   });
 
   final MessageModel message;
   final VoidCallback onCopy;
   final VoidCallback? onRetry;
+
+  /// Report an AI answer (e.g. a wrong/inappropriate response). Non-null only
+  /// for normal AI messages; required by Google Play's GenAI policy so users
+  /// can flag hallucinations.
+  final VoidCallback? onReport;
 
   @override
   Widget build(BuildContext context) {
@@ -87,11 +93,43 @@ class ChatBubble extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(message.timeLabel, style: AppTheme.timestampAi),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(message.timeLabel, style: AppTheme.timestampAi),
+            if (onReport != null) _reportButton(),
+          ],
         ),
       ],
+    );
+  }
+
+  Widget _reportButton() {
+    return Semantics(
+      button: true,
+      label: 'گزارش پاسخ نامناسب',
+      child: InkWell(
+        onTap: onReport,
+        borderRadius: BorderRadius.circular(8),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(Icons.outlined_flag, size: 13, color: Color(0x80FFFFFF)),
+              SizedBox(width: 3),
+              Text(
+                'گزارش',
+                style: TextStyle(
+                  fontFamily: AppTheme.fontFa,
+                  fontSize: 11.5,
+                  color: Color(0x80FFFFFF),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
