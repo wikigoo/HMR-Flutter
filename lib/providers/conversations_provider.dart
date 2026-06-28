@@ -75,6 +75,14 @@ class ConversationsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteAllConversations() async {
+    await ChatDatabase.instance.deleteAllMessages();
+    _all.clear();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_indexKey);
+    notifyListeners();
+  }
+
   Future<void> _saveIndex() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(_indexKey, ConversationModel.encodeList(_all));
