@@ -17,21 +17,38 @@ pluginManagement {
             }
         }
     }
+
+    // CI (GitHub Actions) uses standard repos; local Iran dev uses Aliyun mirrors.
+    // The env var HMR_USE_ALIYUN=true is set only for local Iran builds.
     repositories {
-        maven { url = uri("https://maven.aliyun.com/repository/google") }
-        maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
-        maven { url = uri("https://maven.aliyun.com/repository/central") }
-        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        val useAliyun = System.getenv("HMR_USE_ALIYUN") == "true"
+        if (useAliyun) {
+            maven { url = uri("https://maven.aliyun.com/repository/google") }
+            maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
+            maven { url = uri("https://maven.aliyun.com/repository/central") }
+            maven { url = uri("https://maven.aliyun.com/repository/public") }
+        } else {
+            google()
+            mavenCentral()
+            gradlePluginPortal()
+        }
     }
 }
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
-        maven { url = uri("https://storage.flutter-io.cn/download.flutter.io") }
-        maven { url = uri("https://maven.aliyun.com/repository/google") }
-        maven { url = uri("https://maven.aliyun.com/repository/central") }
-        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        val useAliyun = System.getenv("HMR_USE_ALIYUN") == "true"
+        if (useAliyun) {
+            maven { url = uri("https://storage.flutter-io.cn/download.flutter.io") }
+            maven { url = uri("https://maven.aliyun.com/repository/google") }
+            maven { url = uri("https://maven.aliyun.com/repository/central") }
+            maven { url = uri("https://maven.aliyun.com/repository/public") }
+        } else {
+            google()
+            mavenCentral()
+            maven { url = uri("https://storage.googleapis.com/download.flutter.io") }
+        }
     }
 }
 
@@ -44,11 +61,16 @@ plugins {
 
 include(":app")
 
-// Redirect legacy plugin buildscript repos (e.g. google_sign_in_android) to Aliyun
 buildscript {
     repositories {
-        maven { url = uri("https://maven.aliyun.com/repository/google") }
-        maven { url = uri("https://maven.aliyun.com/repository/central") }
-        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        val useAliyun = System.getenv("HMR_USE_ALIYUN") == "true"
+        if (useAliyun) {
+            maven { url = uri("https://maven.aliyun.com/repository/google") }
+            maven { url = uri("https://maven.aliyun.com/repository/central") }
+            maven { url = uri("https://maven.aliyun.com/repository/public") }
+        } else {
+            google()
+            mavenCentral()
+        }
     }
 }
