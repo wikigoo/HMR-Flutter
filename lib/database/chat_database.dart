@@ -65,6 +65,11 @@ class ChatDatabase {
     );
   }
 
+  Future<void> deleteAllMessages() async {
+    final Database db = await _database;
+    await db.delete('messages');
+  }
+
   static MessageModel _rowToModel(Map<String, dynamic> row) {
     return MessageModel(
       id: row['id'] as String,

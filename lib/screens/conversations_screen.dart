@@ -450,16 +450,53 @@ class _Sidebar extends StatelessWidget {
                 },
               ),
               const Spacer(),
-              if (auth.isSignedIn)
+              if (auth.isSignedIn) ...<Widget>[
                 _DrawerTile(
                   icon: Icons.logout_rounded,
                   label: 'خروج از حساب',
-                  danger: true,
+                  danger: false,
                   onTap: () {
                     context.read<AuthProvider>().signOut();
                     Navigator.pop(context);
                   },
                 ),
+                _DrawerTile(
+                  icon: Icons.delete_forever_rounded,
+                  label: 'حذف حساب',
+                  danger: true,
+                  onTap: () async {
+                    final ConversationsProvider convs =
+                        context.read<ConversationsProvider>();
+                    final AuthProvider authP = context.read<AuthProvider>();
+                    final NavigatorState nav = Navigator.of(context);
+                    final bool? ok = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => const ConfirmDialog(
+                        title: 'حذف حساب',
+                        body:
+                            'تمام گفت‌وگوها از دستگاه پاک می‌شوند و از حساب گوگل خارج می‌شوید.\n\nبرای حذف داده‌های سرور، یک ایمیل درخواست برای ما ارسال خواهد شد.',
+                        confirmLabel: 'حذف حساب',
+                      ),
+                    );
+                    if (!(ok ?? false)) return;
+                    await convs.deleteAllConversations();
+                    await authP.signOut();
+                    nav.pop();
+                    await launchUrl(
+                      Uri(
+                        scheme: 'mailto',
+                        path: 'support@hmrbot.com',
+                        queryParameters: <String, String>{
+                          'subject': 'Account Deletion Request — HMR',
+                          'body':
+                              'Please delete my HMR account and all associated data.',
+                        },
+                      ),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  },
+                ),
+              ],
               const SizedBox(height: 6),
               const Center(
                 child: Text(
