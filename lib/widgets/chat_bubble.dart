@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/message_model.dart';
@@ -15,11 +15,25 @@ class ChatBubble extends StatelessWidget {
     required this.message,
     required this.onCopy,
     this.onRetry,
+    this.onReport,
+    this.onThumbsUp,
+    this.onThumbsDown,
   });
 
   final MessageModel message;
   final VoidCallback onCopy;
   final VoidCallback? onRetry;
+
+  /// Report an AI answer (e.g. a wrong/inappropriate response). Non-null only
+  /// for normal AI messages; required by Google Play's GenAI policy so users
+  /// can flag hallucinations.
+  final VoidCallback? onReport;
+
+  /// Quick feedback — thumbs up on an AI answer.
+  final VoidCallback? onThumbsUp;
+
+  /// Quick feedback — thumbs down on an AI answer.
+  final VoidCallback? onThumbsDown;
 
   @override
   Widget build(BuildContext context) {
@@ -87,11 +101,72 @@ class ChatBubble extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(message.timeLabel, style: AppTheme.timestampAi),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(message.timeLabel, style: AppTheme.timestampAi),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _iconButton(
+                  icon: Icons.copy_rounded,
+                  label: 'کپی',
+                  onTap: onCopy,
+                ),
+                const SizedBox(width: 2),
+                _iconButton(
+                  icon: Icons.thumb_up_outlined,
+                  label: 'مفید بود',
+                  onTap: onThumbsUp,
+                ),
+                const SizedBox(width: 2),
+                _iconButton(
+                  icon: Icons.thumb_down_outlined,
+                  label: 'مفید نبود',
+                  onTap: onThumbsDown,
+                ),
+                const SizedBox(width: 2),
+                if (onReport != null) _reportButton(),
+              ],
+            ),
+          ],
         ),
       ],
+    );
+  }
+
+  Widget _iconButton({
+    required IconData icon,
+    required String label,
+    VoidCallback? onTap,
+  }) {
+    if (onTap == null) return const SizedBox.shrink();
+    return Semantics(
+      button: true,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          child: Icon(icon, size: 15, color: const Color(0x80FFFFFF)),
+        ),
+      ),
+    );
+  }
+
+  Widget _reportButton() {
+    return Semantics(
+      button: true,
+      label: 'گزارش پاسخ نامناسب',
+      child: InkWell(
+        onTap: onReport,
+        borderRadius: BorderRadius.circular(8),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          child: Icon(Icons.outlined_flag, size: 15, color: Color(0x80FFFFFF)),
+        ),
+      ),
     );
   }
 

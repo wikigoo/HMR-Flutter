@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 /// HMR design tokens — dark neon-blue glassmorphism.
 /// Every color is expressed as `Color(0xAARRGGBB)` (no `withOpacity`)

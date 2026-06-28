@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/message_model.dart';
 import '../providers/chat_provider.dart';
@@ -88,6 +89,59 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  static const String _supportEmail = 'wikigoo58@gmail.com';
+
+  /// Report an AI answer (hallucination / inappropriate / wrong). Opens the
+  /// user's email app pre-filled with the flagged response. Falls back to
+  /// copying the support address if no mail client is available.
+  Future<void> _report(String text) async {
+    final String excerpt =
+        text.length > 1000 ? '${text.substring(0, 1000)}…' : text;
+    const String subject = 'گزارش پاسخ نامناسب — HMR';
+    final String body = 'سلام،\n'
+        'می‌خواهم این پاسخ هوش مصنوعی را گزارش کنم:\n\n'
+        '«$excerpt»\n\n'
+        'دلیل گزارش (لطفاً توضیح دهید): ';
+    final Uri mailto = Uri.parse(
+      'mailto:$_supportEmail'
+      '?subject=${Uri.encodeComponent(subject)}'
+      '&body=${Uri.encodeComponent(body)}',
+    );
+
+    bool opened = false;
+    try {
+      opened = await launchUrl(mailto, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened) {
+      await Clipboard.setData(const ClipboardData(text: _supportEmail));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(_snack('برنامه ایمیلی یافت نشد. آدرس پشتیبانی کپی شد: $_supportEmail'));
+    }
+  }
+
+  SnackBar _snack(String message) {
+    return SnackBar(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: const Color(0xE00A1020),
+      elevation: 0,
+      duration: const Duration(milliseconds: 2600),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(color: AppTheme.glowRing, width: 0.8),
+      ),
+      content: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+            fontFamily: AppTheme.fontFa, color: AppTheme.textBody, fontSize: 12.5),
+      ),
+    );
+  }
+
   Future<void> _confirmClear() async {
     final bool? ok = await showDialog<bool>(
       context: context,
@@ -118,8 +172,8 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Column(
               children: <Widget>[
                 _AppBar(onClear: _confirmClear),
-                Expanded(child: _messageList()),
                 const PriceDisclaimer(),
+                Expanded(child: _messageList()),
                 _Composer(
                   controller: _input,
                   focus: _focus,
@@ -138,7 +192,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Consumer<ChatProvider>(
       builder: (BuildContext context, ChatProvider chat, _) {
         if (chat.messages.isEmpty && !chat.isLoading) {
-          return const _EmptyState();
+          return _EmptyState(onPrompt: _send);
         }
         final List<MessageModel> messages = chat.messages;
         final int typing = chat.isLoading ? 1 : 0;
@@ -159,6 +213,21 @@ class _ChatScreenState extends State<ChatScreen> {
               onRetry: m.isError
                   ? () => context.read<ChatProvider>().retryLastMessage()
                   : null,
+              onReport: m.isAi && !m.isError ? () => _report(m.text) : null,
+              onThumbsUp: m.isAi && !m.isError
+                  ? () {
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(_snack('بازخورد شما ثبت شد. متشکریم!'));
+                    }
+                  : null,
+              onThumbsDown: m.isAi && !m.isError
+                  ? () {
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(_snack('بازخورد شما ثبت شد. متشکریم!'));
+                    }
+                  : null,
             );
           },
         );
@@ -169,15 +238,51 @@ class _ChatScreenState extends State<ChatScreen> {
 
 // ── Empty state ──────────────────────────────────────────────────────────
 
-/// Centered welcome shown when there are no messages.
+/// Five graphical category cards based on HMR's five product pillars.
+/// Tapping a card sends a ready-made prompt to start the conversation.
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({required this.onPrompt});
+
+  final void Function(String preset) onPrompt;
+
+  static const List<_CategoryCard> _cards = <_CategoryCard>[
+    _CategoryCard(
+      icon: Icons.phone_android_rounded,
+      gradient: <Color>[Color(0xFF00D4FF), Color(0xFF2F6BFF)],
+      title: 'گوشی نو',
+      prompt: 'راهنمای خرید گوشی نو می‌خوام. بهترین گوشی‌های بازار الان چیا هستن؟',
+    ),
+    _CategoryCard(
+      icon: Icons.recycling_rounded,
+      gradient: <Color>[Color(0xFF34E0A1), Color(0xFF0EA5E9)],
+      title: 'گوشی دست دوم',
+      prompt: 'چک‌لیست خرید گوشی دست دوم رو بهم بگو. چطور گوشی سالم رو تشخیص بدم؟',
+    ),
+    _CategoryCard(
+      icon: Icons.build_rounded,
+      gradient: <Color>[Color(0xFFF6B73C), Color(0xFFF97316)],
+      title: 'عیب‌یابی',
+      prompt: 'گوشیم مشکل داره. چطور عیب‌یابیش کنم؟',
+    ),
+    _CategoryCard(
+      icon: Icons.school_rounded,
+      gradient: <Color>[Color(0xFF6366F1), Color(0xFF8B5CF6)],
+      title: 'آموزش سخت‌افزار',
+      prompt: 'می‌خوام درباره سخت‌افزار گوشی بیشتر بدونم. از کجا شروع کنم؟',
+    ),
+    _CategoryCard(
+      icon: Icons.headphones_rounded,
+      gradient: <Color>[Color(0xFFEC4899), Color(0xFFF43F5E)],
+      title: 'لوازم جانبی',
+      prompt: 'بهترین لوازم جانبی برای گوشی من چیه؟ راهنمایی می‌خوام.',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -188,20 +293,107 @@ class _EmptyState extends StatelessWidget {
                   BoxShadow(color: AppTheme.glow, blurRadius: 36, spreadRadius: 2),
                 ],
               ),
-              child: const HmrAvatar(size: 76),
+              child: const HmrAvatar(size: 64),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             const Text('HMR', style: AppTheme.welcomeKicker),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             const Text(
-              'من همر هستم، مشاور هوشمند سخت‌افزار شما. چه کمکی از دستم برمی‌آید؟',
+              'من همر هستم، مشاور هوشمند سخت‌افزار شما.\nچه کمکی از دستم برمی‌آید؟',
               textAlign: TextAlign.center,
               textDirection: TextDirection.rtl,
               style: AppTheme.welcomeBody,
             ),
             const SizedBox(height: 24),
-            const PriceDisclaimer(),
+            ..._cards.map((_CategoryCard c) => _CategoryTile(card: c, onTap: () => onPrompt(c.prompt))),
+            const SizedBox(height: 16),
+            const PriceDisclaimer(compact: true),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryCard {
+  const _CategoryCard({
+    required this.icon,
+    required this.gradient,
+    required this.title,
+    required this.prompt,
+  });
+
+  final IconData icon;
+  final List<Color> gradient;
+  final String title;
+  final String prompt;
+}
+
+class _CategoryTile extends StatelessWidget {
+  const _CategoryTile({required this.card, required this.onTap});
+
+  final _CategoryCard card;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Semantics(
+        button: true,
+        label: card.title,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.glassBorder, width: 0.8),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[
+                  Color.fromARGB(31, card.gradient[0].red, card.gradient[0].green, card.gradient[0].blue),
+                  Color.fromARGB(15, card.gradient[1].red, card.gradient[1].green, card.gradient[1].blue),
+                ],
+              ),
+            ),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: card.gradient,
+                    ),
+                  ),
+                  child: Icon(card.icon, color: Colors.white, size: 20),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    card.title,
+                    textDirection: TextDirection.rtl,
+                    style: const TextStyle(
+                      fontFamily: AppTheme.fontFa,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_back_ios_new,
+                  size: 14,
+                  color: Color.fromARGB(153, card.gradient[0].red, card.gradient[0].green, card.gradient[0].blue),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
