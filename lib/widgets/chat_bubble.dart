@@ -16,6 +16,8 @@ class ChatBubble extends StatelessWidget {
     required this.onCopy,
     this.onRetry,
     this.onReport,
+    this.onThumbsUp,
+    this.onThumbsDown,
   });
 
   final MessageModel message;
@@ -26,6 +28,12 @@ class ChatBubble extends StatelessWidget {
   /// for normal AI messages; required by Google Play's GenAI policy so users
   /// can flag hallucinations.
   final VoidCallback? onReport;
+
+  /// Quick feedback — thumbs up on an AI answer.
+  final VoidCallback? onThumbsUp;
+
+  /// Quick feedback — thumbs down on an AI answer.
+  final VoidCallback? onThumbsDown;
 
   @override
   Widget build(BuildContext context) {
@@ -97,10 +105,53 @@ class ChatBubble extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(message.timeLabel, style: AppTheme.timestampAi),
-            if (onReport != null) _reportButton(),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _iconButton(
+                  icon: Icons.copy_rounded,
+                  label: 'کپی',
+                  onTap: onCopy,
+                ),
+                const SizedBox(width: 2),
+                _iconButton(
+                  icon: Icons.thumb_up_outlined,
+                  label: 'مفید بود',
+                  onTap: onThumbsUp,
+                ),
+                const SizedBox(width: 2),
+                _iconButton(
+                  icon: Icons.thumb_down_outlined,
+                  label: 'مفید نبود',
+                  onTap: onThumbsDown,
+                ),
+                const SizedBox(width: 2),
+                if (onReport != null) _reportButton(),
+              ],
+            ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _iconButton({
+    required IconData icon,
+    required String label,
+    VoidCallback? onTap,
+  }) {
+    if (onTap == null) return const SizedBox.shrink();
+    return Semantics(
+      button: true,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          child: Icon(icon, size: 15, color: const Color(0x80FFFFFF)),
+        ),
+      ),
     );
   }
 
@@ -112,22 +163,8 @@ class ChatBubble extends StatelessWidget {
         onTap: onReport,
         borderRadius: BorderRadius.circular(8),
         child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(Icons.outlined_flag, size: 13, color: Color(0x80FFFFFF)),
-              SizedBox(width: 3),
-              Text(
-                'گزارش',
-                style: TextStyle(
-                  fontFamily: AppTheme.fontFa,
-                  fontSize: 11.5,
-                  color: Color(0x80FFFFFF),
-                ),
-              ),
-            ],
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          child: Icon(Icons.outlined_flag, size: 15, color: Color(0x80FFFFFF)),
         ),
       ),
     );
