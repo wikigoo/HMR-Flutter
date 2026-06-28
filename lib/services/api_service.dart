@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String _baseUrl = 'https://srv.hmrbot.com';
-  static const String _chatflowId = '843b252b-6ed0-4064-96cd-cb78367bd7b3';
+  static const String _chatflowId = '463b566b-f0f1-44d8-b498-3827c188783a';
 
   // Injected at compile time: flutter build apk --dart-define=HMR_API_TOKEN=<token>
   static const String _apiToken = String.fromEnvironment('HMR_API_TOKEN');
