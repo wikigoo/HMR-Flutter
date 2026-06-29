@@ -38,7 +38,7 @@ jobs:
           yes | sdkmanager --licenses || true
           sdkmanager "platforms;android-36" "build-tools;36.1.0" "ndk;30.0.14904198"
 
-      - name: Guard: versionCode must be bumped from last release
+      - name: "Guard: versionCode must be bumped from last release"
         run: |
           CURRENT=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
           echo "Current versionCode: $CURRENT"
