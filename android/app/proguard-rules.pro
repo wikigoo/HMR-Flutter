@@ -35,3 +35,20 @@
 # url_launcher / Custom Tabs
 -keep class androidx.browser.customtabs.** { *; }
 -dontwarn androidx.browser.**
+
+# Sentry — crash reporting. Sentry uses reflection to read stack frames and
+# device metadata; obfuscating these classes breaks crash reports entirely.
+-keep class io.sentry.** { *; }
+-keep class io.sentry.android.** { *; }
+-dontwarn io.sentry.**
+# Preserve original class/method names so Sentry stack traces are readable.
+-keepattributes SourceFile,LineNumberTable
+-keep public class * extends java.lang.Exception
+
+# connectivity_plus — uses Android NetworkCallback APIs via reflection.
+-keep class dev.fluttercommunity.plus.connectivity.** { *; }
+-dontwarn dev.fluttercommunity.plus.connectivity.**
+
+# OkHttp / Okio (transitive dep of some plugins; safe to suppress warnings)
+-dontwarn okhttp3.**
+-dontwarn okio.**
