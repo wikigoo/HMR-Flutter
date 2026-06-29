@@ -18,19 +18,19 @@ pluginManagement {
         }
     }
 
-    // CI (GitHub Actions) uses standard repos; local Iran dev uses Aliyun mirrors.
-    // The env var HMR_USE_ALIYUN=true is set only for local Iran builds.
+    // Default: Aliyun mirrors (Iran dev environment).
+    // GitHub Actions sets CI=true automatically → use standard repos (unblocked in CI).
     repositories {
-        val useAliyun = System.getenv("HMR_USE_ALIYUN") == "true"
-        if (useAliyun) {
+        val isCI = System.getenv("CI") == "true"
+        if (isCI) {
+            google()
+            mavenCentral()
+            gradlePluginPortal()
+        } else {
             maven { url = uri("https://maven.aliyun.com/repository/google") }
             maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
             maven { url = uri("https://maven.aliyun.com/repository/central") }
             maven { url = uri("https://maven.aliyun.com/repository/public") }
-        } else {
-            google()
-            mavenCentral()
-            gradlePluginPortal()
         }
     }
 }
@@ -38,16 +38,16 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
-        val useAliyun = System.getenv("HMR_USE_ALIYUN") == "true"
-        if (useAliyun) {
+        val isCI = System.getenv("CI") == "true"
+        if (isCI) {
+            google()
+            mavenCentral()
+            maven { url = uri("https://storage.googleapis.com/download.flutter.io") }
+        } else {
             maven { url = uri("https://storage.flutter-io.cn/download.flutter.io") }
             maven { url = uri("https://maven.aliyun.com/repository/google") }
             maven { url = uri("https://maven.aliyun.com/repository/central") }
             maven { url = uri("https://maven.aliyun.com/repository/public") }
-        } else {
-            google()
-            mavenCentral()
-            maven { url = uri("https://storage.googleapis.com/download.flutter.io") }
         }
     }
 }
@@ -63,14 +63,14 @@ include(":app")
 
 buildscript {
     repositories {
-        val useAliyun = System.getenv("HMR_USE_ALIYUN") == "true"
-        if (useAliyun) {
+        val isCI = System.getenv("CI") == "true"
+        if (isCI) {
+            google()
+            mavenCentral()
+        } else {
             maven { url = uri("https://maven.aliyun.com/repository/google") }
             maven { url = uri("https://maven.aliyun.com/repository/central") }
             maven { url = uri("https://maven.aliyun.com/repository/public") }
-        } else {
-            google()
-            mavenCentral()
         }
     }
 }
