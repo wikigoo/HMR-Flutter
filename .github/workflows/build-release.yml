@@ -38,6 +38,24 @@ jobs:
           yes | sdkmanager --licenses || true
           sdkmanager "platforms;android-36" "build-tools;36.1.0" "ndk;30.0.14904198"
 
+      - name: Guard: versionCode must be bumped from last release
+        run: |
+          CURRENT=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
+          echo "Current versionCode: $CURRENT"
+          LAST_TAG=$(git tag --sort=-v:refname | head -1)
+          if [ -n "$LAST_TAG" ]; then
+            git checkout "$LAST_TAG" -- pubspec.yaml 2>/dev/null || true
+            PREV=$(grep '^version:' pubspec.yaml | sed 's/.*+//' 2>/dev/null || echo "0")
+            git checkout HEAD -- pubspec.yaml
+            echo "Last release versionCode: $PREV (tag: $LAST_TAG)"
+            if [ "$CURRENT" -le "$PREV" ]; then
+              echo "❌ versionCode=$CURRENT has not been bumped (last=$PREV). Update pubspec.yaml before uploading."
+              exit 1
+            fi
+          else
+            echo "No previous tag found — first release, skipping version guard."
+          fi
+
       - name: Install Flutter dependencies
         run: flutter pub get
 
