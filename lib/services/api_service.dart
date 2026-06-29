@@ -11,6 +11,7 @@ class ApiService {
   static const String _apiToken = String.fromEnvironment('HMR_API_TOKEN');
 
   static const Duration _timeout = Duration(seconds: 30);
+  static const Duration _preflightTimeout = Duration(seconds: 3);
   static const int _maxRetries = 2;
   static const List<Duration> _backoffs = [
     Duration(seconds: 1),
@@ -31,7 +32,9 @@ class ApiService {
       );
     }
 
-    // Fail immediately when there is no network — avoids a 30 s timeout wait.
+    // Pre-flight: fast network check before the real request.
+    // connectivity_plus alone misses captive portals and DNS failures;
+    // a real HTTP probe to the server is the only reliable signal.
     final List<ConnectivityResult> connectivity =
         await Connectivity().checkConnectivity();
     if (connectivity.every(
@@ -40,6 +43,7 @@ class ApiService {
         'اتصال اینترنت برقرار نیست. لطفاً اتصال خود را بررسی کنید.',
       );
     }
+    await _preflight();
 
     final Uri url = Uri.parse('$_baseUrl/api/v1/prediction/$_chatflowId');
     final Map<String, String> headers = {
@@ -68,6 +72,33 @@ class ApiService {
   // ---------------------------------------------------------------------------
   // Private
   // ---------------------------------------------------------------------------
+
+  /// Light probe to /api/v1/version (no auth, ~100 bytes response).
+  /// Catches captive portals, DNS failures, and server-down before the
+  /// real 30-second request is sent.
+  Future<void> _preflight() async {
+    try {
+      final res = await http
+          .get(Uri.parse('$_baseUrl/api/v1/version'))
+          .timeout(_preflightTimeout);
+      if (res.statusCode >= 500) {
+        throw _TransientError(
+          'سرور همر در دسترس نیست (${res.statusCode}). لطفاً لحظاتی دیگر تلاش کنید.',
+        );
+      }
+    } on TimeoutException {
+      throw const _TransientError(
+        'سرور همر پاسخ نمی‌دهد. اتصال اینترنت یا فیلترینگ را بررسی کنید.',
+      );
+    } on http.ClientException {
+      throw const _TransientError(
+        'اتصال به سرور برقرار نشد. لطفاً اتصال اینترنت خود را بررسی کنید.',
+      );
+    } catch (_) {
+      // Non-network errors (e.g. unexpected response format) — let the real
+      // request surface its own error rather than blocking here.
+    }
+  }
 
   Future<String> _attempt(
     Uri url,
