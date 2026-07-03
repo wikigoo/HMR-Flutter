@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/message_model.dart';
+// Swapped for db_factory_web.dart on the web; no-op on native platforms.
+import 'db_factory_stub.dart' if (dart.library.js_interop) 'db_factory_web.dart';
 
 /// Singleton SQLite helper for chat message persistence.
 ///
@@ -19,7 +22,11 @@ class ChatDatabase {
   }
 
   Future<Database> _open() async {
-    final String path = join(await getDatabasesPath(), 'hmr_chat.db');
+    // On the web this installs the IndexedDB-backed factory; no-op on native.
+    configureDatabaseFactoryForWeb();
+    // getDatabasesPath() is meaningless on the web, where the DB is keyed by name.
+    final String path =
+        kIsWeb ? 'hmr_chat.db' : join(await getDatabasesPath(), 'hmr_chat.db');
     return openDatabase(
       path,
       version: 1,

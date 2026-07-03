@@ -16,6 +16,10 @@ dependencies:
   http: ^1.2.0
   intl: ^0.20.2
   sqflite: ^2.3.3
+  # Web-only backend for sqflite (IndexedDB + sqlite3.wasm). Present on all
+  # platforms but only imported on the web via a conditional import in
+  # lib/database/chat_database.dart, so native builds are unaffected.
+  sqflite_common_ffi_web: ^0.4.5
   path: ^1.9.0
   google_sign_in: ^6.2.1
   url_launcher: ^6.3.0
