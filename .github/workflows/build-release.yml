@@ -47,7 +47,7 @@ jobs:
         run: |
           CURRENT=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
           echo "Current versionCode: $CURRENT"
-          LAST_TAG=$(git tag --sort=-v:refname | head -1)
+          LAST_TAG=$(git tag --list 'v*' --sort=-v:refname | head -1)   # only version tags; ignore web-latest etc.
           if [ -n "$LAST_TAG" ]; then
             git checkout "$LAST_TAG" -- pubspec.yaml 2>/dev/null || true
             PREV=$(grep '^version:' pubspec.yaml | sed 's/.*+//' 2>/dev/null || echo "0")
