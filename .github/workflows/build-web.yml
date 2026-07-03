@@ -40,6 +40,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Fetch sqflite_sw.js + sqlite3.wasm into web/ so sqflite works on the web.
+      - name: Set up sqflite web (sqlite3.wasm + worker)
+        run: dart run sqflite_common_ffi_web:setup
+
       - name: Build web (served under /ai, no secret token in the bundle)
         run: |
           flutter build web --release \
