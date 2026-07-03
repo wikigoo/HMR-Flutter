@@ -6,6 +6,9 @@ on:
     tags: ['v*']
   workflow_dispatch:
 
+permissions:
+  contents: write          # needed to create a GitHub Release on tag builds
+
 jobs:
   build:
     name: Signed Android App Bundle
@@ -14,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      # need tags/history for the version-guard step
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -72,7 +77,7 @@ jobs:
             | base64 --decode > "$RUNNER_TEMP/hmr-release.jks"
           echo "HMR_KEYSTORE_PATH=$RUNNER_TEMP/hmr-release.jks" >> "$GITHUB_ENV"
 
-      - name: Build release AAB
+      - name: Build release AAB (for Google Play)
         env:
           HMR_KEY_ALIAS:      ${{ secrets.HMR_KEY_ALIAS }}
           HMR_KEY_PASSWORD:   ${{ secrets.HMR_KEY_PASSWORD }}
@@ -82,12 +87,41 @@ jobs:
           flutter build appbundle --release \
             --dart-define=HMR_API_TOKEN=${{ secrets.HMR_API_TOKEN }}
 
+      # (b) Universal APK — installs directly on any phone without the Play Store
+      - name: Build release APK (universal, sideload-able)
+        env:
+          HMR_KEY_ALIAS:      ${{ secrets.HMR_KEY_ALIAS }}
+          HMR_KEY_PASSWORD:   ${{ secrets.HMR_KEY_PASSWORD }}
+          HMR_STORE_PASSWORD: ${{ secrets.HMR_STORE_PASSWORD }}
+        run: |
+          flutter build apk --release \
+            --dart-define=HMR_API_TOKEN=${{ secrets.HMR_API_TOKEN }}
+
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: hmr-release-${{ github.sha }}
+          name: hmr-release-aab-${{ github.sha }}
           path: build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hmr-release-apk-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      # -------- (a) On a version tag (v*), publish a permanent downloadable Release --------
+      - name: Publish GitHub Release (on v* tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: HMR ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
 
       # Clean up keystore from runner immediately after build
       - name: Remove keystore from runner
