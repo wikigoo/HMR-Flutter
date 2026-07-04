@@ -37,10 +37,10 @@ Built with Flutter (Android-first), it features a glassmorphism UI, full RTL sup
 | Auth | `google_sign_in ^6.2.1` (no Firebase dependency) |
 | HTTP | `http ^1.2.0` |
 | Local storage | `sqflite ^2.3.3` (messages) · `shared_preferences ^2.2.2` (conversation index) |
-| Markdown | `flutter_markdown ^0.7.3` |
+| Markdown | `flutter_markdown_plus ^1.0.7` |
 | Connectivity | `connectivity_plus ^6.1.4` |
 | ID generation | `uuid ^4.5.1` |
-| Error tracking | `sentry_flutter ^8.14.0` (opt-in via dart-define) |
+| Error tracking | `sentry_flutter 9.0.0` (opt-in via dart-define) |
 | State management | `provider ^6.1.1` |
 | Fonts | Vazirmatn (Persian UI) · SpaceGrotesk Variable (Latin / brand) |
 
@@ -237,7 +237,6 @@ All conversation data is stored exclusively on the user's device. HMR does not t
 | 1 | Rotate signing keystore; purge old keystore from git history; enroll in Play App Signing | Needs `keytool` + Play Console access |
 | 2 | Deploy VPS reverse proxy so the API token is removed from the client binary | Needs VPS SSH + server deployment |
 | 3 | Register SHA-1 / SHA-256 fingerprints in Google Cloud Console for production OAuth | Needs Google Cloud login |
-| 4 | Migrate `flutter_markdown` → `flutter_markdown_plus` (upstream package deprecated) | Post-launch, non-blocking |
 
 ---
 
