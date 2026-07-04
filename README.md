@@ -36,13 +36,18 @@ Built with Flutter (Android-first), it features a glassmorphism UI, full RTL sup
 | AI backend | [Flowise](https://github.com/FlowiseAI/Flowise) — self-hosted VPS |
 | Auth | `google_sign_in ^6.2.1` (no Firebase dependency) |
 | HTTP | `http ^1.2.0` |
+| External links | `url_launcher ^6.3.0` (opens AI-response links in the device browser) |
 | Local storage | `sqflite ^2.3.3` (messages) · `shared_preferences ^2.2.2` (conversation index) |
+| Web storage backend | `sqflite_common_ffi_web ^0.4.5` (IndexedDB + `sqlite3.wasm`; web only, conditional import) |
+| Paths | `path ^1.9.0` (SQLite database file location) |
 | Markdown | `flutter_markdown_plus ^1.0.7` |
 | Connectivity | `connectivity_plus ^6.1.4` |
 | ID generation | `uuid ^4.5.1` |
 | Error tracking | `sentry_flutter 9.0.0` (opt-in via dart-define) |
 | State management | `provider ^6.1.1` |
+| Localization | `intl ^0.20.2` · `flutter_localizations` (fa-IR locale, Jalali & number formatting) |
 | Fonts | Vazirmatn (Persian UI) · SpaceGrotesk Variable (Latin / brand) |
+| Dev tooling | `flutter_lints ^6.0.0` · `flutter_launcher_icons ^0.14.3` · `flutter_native_splash ^2.4.4` |
 
 ---
 
