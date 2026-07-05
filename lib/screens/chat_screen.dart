@@ -199,7 +199,6 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       )
                     else ...<Widget>[
-                      const PriceDisclaimer(),
                       Expanded(child: _centered(_messageList())),
                       _centered(
                         _Composer(

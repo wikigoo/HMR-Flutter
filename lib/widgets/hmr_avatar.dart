@@ -31,7 +31,10 @@ class HmrAvatar extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Padding(
           padding: EdgeInsets.all(size * 0.12),
-          child: Image.asset('assets/images/hmr_logo.png', fit: BoxFit.contain),
+          child: Image.asset(
+            'assets/images/hmr-avatar.png',
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
