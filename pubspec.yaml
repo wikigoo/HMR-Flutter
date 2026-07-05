@@ -58,6 +58,7 @@ flutter:
 
   assets:
     - assets/images/hmr_logo.png
+    - assets/images/hmr-mark.png
     - assets/images/hmr_text.png
     - assets/images/hmr-avatar.png
 

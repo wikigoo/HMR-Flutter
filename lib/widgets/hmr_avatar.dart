@@ -2,40 +2,36 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Circular HMR robot mascot with a neon gradient ring + soft cyan glow.
-/// Shared by the app bar, AI bubbles and the typing indicator.
+/// The HMR robot mark. A clean transparent-PNG logo on the dark UI; an optional
+/// soft cyan glow is used only on large hero placements (kept off for the small
+/// app-bar / bubble avatars to respect the performance budget).
 class HmrAvatar extends StatelessWidget {
-  const HmrAvatar({super.key, this.size = 30});
+  const HmrAvatar({super.key, this.size = 30, this.glow = false});
 
   final double size;
+  final bool glow;
 
   @override
   Widget build(BuildContext context) {
-    final double inset = size >= 38 ? 2 : 1.5;
     return Container(
       width: size,
       height: size,
-      padding: EdgeInsets.all(inset),
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: AppTheme.neon,
-        boxShadow: AppTheme.ringGlow,
-      ),
-      child: Container(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          // Solid dark-navy core. The neon ring separates the orb from the
-          // page so the logo reads cleanly against the app background.
-          color: AppTheme.avatarCore,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: EdgeInsets.all(size * 0.12),
-          child: Image.asset(
-            'assets/images/hmr-avatar.png',
-            fit: BoxFit.contain,
-          ),
-        ),
+      decoration: glow
+          ? const BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: AppTheme.glow,
+                  blurRadius: 40,
+                  spreadRadius: 2,
+                ),
+              ],
+            )
+          : null,
+      child: Image.asset(
+        'assets/images/hmr-mark.png',
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
       ),
     );
   }
