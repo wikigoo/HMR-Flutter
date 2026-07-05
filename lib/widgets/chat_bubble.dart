@@ -41,7 +41,9 @@ class ChatBubble extends StatelessWidget {
   }
 
   Widget _buildAi(BuildContext context) {
-    final double maxWidth = MediaQuery.of(context).size.width * 0.76;
+    final double maxWidth = (MediaQuery.of(context).size.width * 0.76)
+        .clamp(240.0, 560.0)
+        .toDouble();
     // Force LTR so the avatar stays physically on the left of the bubble,
     // regardless of the app's global RTL direction.
     return Directionality(
@@ -195,8 +197,7 @@ class ChatBubble extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 side: const BorderSide(color: Color(0x66FF5470), width: 0.8),
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
@@ -216,7 +217,9 @@ class ChatBubble extends StatelessWidget {
   }
 
   Widget _buildUser(BuildContext context) {
-    final double maxWidth = MediaQuery.of(context).size.width * 0.78;
+    final double maxWidth = (MediaQuery.of(context).size.width * 0.78)
+        .clamp(240.0, 600.0)
+        .toDouble();
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
@@ -228,7 +231,11 @@ class ChatBubble extends StatelessWidget {
             gradient: AppTheme.userBubble,
             border: AppTheme.userBubbleBorder,
             glow: const <BoxShadow>[
-              BoxShadow(color: AppTheme.glow, blurRadius: 20, offset: Offset(0, 4)),
+              BoxShadow(
+                color: AppTheme.glow,
+                blurRadius: 20,
+                offset: Offset(0, 4),
+              ),
             ],
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(22),
@@ -244,16 +251,19 @@ class ChatBubble extends StatelessWidget {
   }
 
   Widget _userContent() {
+    // start (RTL -> right) + min size so the bubble hugs its text instead of
+    // stretching to the full max width (which turned short messages into bars).
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Text(message.text, textAlign: TextAlign.right, style: AppTheme.bodyUser),
-        const SizedBox(height: 5),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(message.timeLabel, style: AppTheme.timestampUser),
+        Text(
+          message.text,
+          textAlign: TextAlign.right,
+          style: AppTheme.bodyUser,
         ),
+        const SizedBox(height: 5),
+        Text(message.timeLabel, style: AppTheme.timestampUser),
       ],
     );
   }
