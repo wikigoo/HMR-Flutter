@@ -84,7 +84,11 @@ class _ChatScreenState extends State<ChatScreen> {
       content: const Text(
         'پیام کپی شد',
         textAlign: TextAlign.center,
-        style: TextStyle(fontFamily: AppTheme.fontFa, color: AppTheme.textBody, fontSize: 12.5),
+        style: TextStyle(
+          fontFamily: AppTheme.fontFa,
+          color: AppTheme.textBody,
+          fontSize: 12.5,
+        ),
       ),
     );
   }
@@ -95,10 +99,12 @@ class _ChatScreenState extends State<ChatScreen> {
   /// user's email app pre-filled with the flagged response. Falls back to
   /// copying the support address if no mail client is available.
   Future<void> _report(String text) async {
-    final String excerpt =
-        text.length > 1000 ? '${text.substring(0, 1000)}…' : text;
+    final String excerpt = text.length > 1000
+        ? '${text.substring(0, 1000)}…'
+        : text;
     const String subject = 'گزارش پاسخ نامناسب — HMR';
-    final String body = 'سلام،\n'
+    final String body =
+        'سلام،\n'
         'می‌خواهم این پاسخ هوش مصنوعی را گزارش کنم:\n\n'
         '«$excerpt»\n\n'
         'دلیل گزارش (لطفاً توضیح دهید): ';
@@ -119,7 +125,11 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(_snack('برنامه ایمیلی یافت نشد. آدرس پشتیبانی کپی شد: $_supportEmail'));
+        ..showSnackBar(
+          _snack(
+            'برنامه ایمیلی یافت نشد. آدرس پشتیبانی کپی شد: $_supportEmail',
+          ),
+        );
     }
   }
 
@@ -137,7 +147,10 @@ class _ChatScreenState extends State<ChatScreen> {
         message,
         textAlign: TextAlign.center,
         style: const TextStyle(
-            fontFamily: AppTheme.fontFa, color: AppTheme.textBody, fontSize: 12.5),
+          fontFamily: AppTheme.fontFa,
+          color: AppTheme.textBody,
+          fontSize: 12.5,
+        ),
       ),
     );
   }
@@ -147,7 +160,8 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (BuildContext ctx) => const ConfirmDialog(
         title: 'پاک‌کردن گفت‌وگو',
-        body: 'همهٔ پیام‌های این گفت‌وگو حذف می‌شوند. این کار قابل بازگشت نیست.',
+        body:
+            'همهٔ پیام‌های این گفت‌وگو حذف می‌شوند. این کار قابل بازگشت نیست.',
         confirmLabel: 'پاک کن',
       ),
     );
@@ -169,20 +183,36 @@ class _ChatScreenState extends State<ChatScreen> {
           const HmrBackground(),
           SafeArea(
             bottom: false,
-            child: Column(
-              children: <Widget>[
-                _AppBar(onClear: _confirmClear),
-                const PriceDisclaimer(),
-                Expanded(child: _centered(_messageList())),
-                _centered(
-                  _Composer(
-                    controller: _input,
-                    focus: _focus,
-                    onSend: () => _send(),
-                    bottomInset: safe.bottom,
-                  ),
-                ),
-              ],
+            child: Consumer<ChatProvider>(
+              builder: (BuildContext context, ChatProvider chat, _) {
+                final bool empty = chat.messages.isEmpty && !chat.isLoading;
+                return Column(
+                  children: <Widget>[
+                    _AppBar(onClear: _confirmClear),
+                    if (empty)
+                      Expanded(
+                        child: _HeroLanding(
+                          controller: _input,
+                          focus: _focus,
+                          onSend: () => _send(),
+                          bottomInset: safe.bottom,
+                        ),
+                      )
+                    else ...<Widget>[
+                      const PriceDisclaimer(),
+                      Expanded(child: _centered(_messageList())),
+                      _centered(
+                        _Composer(
+                          controller: _input,
+                          focus: _focus,
+                          onSend: () => _send(),
+                          bottomInset: safe.bottom,
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -195,11 +225,11 @@ class _ChatScreenState extends State<ChatScreen> {
   // Constrains chat content to a readable, centered column on wide screens
   // (desktop / web) while staying full-width on phones -- ChatGPT-style.
   Widget _centered(Widget child) => Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: _kContentMaxWidth),
-          child: child,
-        ),
-      );
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: _kContentMaxWidth),
+      child: child,
+    ),
+  );
 
   Widget _messageList() {
     return Consumer<ChatProvider>(
@@ -263,13 +293,15 @@ class _EmptyState extends StatelessWidget {
       icon: Icons.phone_android_rounded,
       gradient: <Color>[Color(0xFF00D4FF), Color(0xFF2F6BFF)],
       title: 'گوشی نو',
-      prompt: 'راهنمای خرید گوشی نو می‌خوام. بهترین گوشی‌های بازار الان چیا هستن؟',
+      prompt:
+          'راهنمای خرید گوشی نو می‌خوام. بهترین گوشی‌های بازار الان چیا هستن؟',
     ),
     _CategoryCard(
       icon: Icons.recycling_rounded,
       gradient: <Color>[Color(0xFF34E0A1), Color(0xFF0EA5E9)],
       title: 'گوشی دست دوم',
-      prompt: 'چک‌لیست خرید گوشی دست دوم رو بهم بگو. چطور گوشی سالم رو تشخیص بدم؟',
+      prompt:
+          'چک‌لیست خرید گوشی دست دوم رو بهم بگو. چطور گوشی سالم رو تشخیص بدم؟',
     ),
     _CategoryCard(
       icon: Icons.build_rounded,
@@ -303,7 +335,11 @@ class _EmptyState extends StatelessWidget {
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 boxShadow: <BoxShadow>[
-                  BoxShadow(color: AppTheme.glow, blurRadius: 36, spreadRadius: 2),
+                  BoxShadow(
+                    color: AppTheme.glow,
+                    blurRadius: 36,
+                    spreadRadius: 2,
+                  ),
                 ],
               ),
               child: const HmrAvatar(size: 64),
@@ -318,7 +354,10 @@ class _EmptyState extends StatelessWidget {
               style: AppTheme.welcomeBody,
             ),
             const SizedBox(height: 24),
-            ..._cards.map((_CategoryCard c) => _CategoryTile(card: c, onTap: () => onPrompt(c.prompt))),
+            ..._cards.map(
+              (_CategoryCard c) =>
+                  _CategoryTile(card: c, onTap: () => onPrompt(c.prompt)),
+            ),
             const SizedBox(height: 16),
             const PriceDisclaimer(compact: true),
           ],
@@ -366,8 +405,18 @@ class _CategoryTile extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: <Color>[
-                  Color.fromARGB(31, card.gradient[0].red, card.gradient[0].green, card.gradient[0].blue),
-                  Color.fromARGB(15, card.gradient[1].red, card.gradient[1].green, card.gradient[1].blue),
+                  Color.fromARGB(
+                    31,
+                    card.gradient[0].red,
+                    card.gradient[0].green,
+                    card.gradient[0].blue,
+                  ),
+                  Color.fromARGB(
+                    15,
+                    card.gradient[1].red,
+                    card.gradient[1].green,
+                    card.gradient[1].blue,
+                  ),
                 ],
               ),
             ),
@@ -402,7 +451,12 @@ class _CategoryTile extends StatelessWidget {
                 Icon(
                   Icons.arrow_back_ios_new,
                   size: 14,
-                  color: Color.fromARGB(153, card.gradient[0].red, card.gradient[0].green, card.gradient[0].blue),
+                  color: Color.fromARGB(
+                    153,
+                    card.gradient[0].red,
+                    card.gradient[0].green,
+                    card.gradient[0].blue,
+                  ),
                 ),
               ],
             ),
@@ -436,7 +490,11 @@ class _AppBar extends StatelessWidget {
             label: 'بازگشت',
           ),
           const Expanded(child: _BrandIdentity()),
-          _GhostIconButton(icon: Icons.delete_sweep_outlined, onTap: onClear, label: 'پاک کردن گفتگو'),
+          _GhostIconButton(
+            icon: Icons.delete_sweep_outlined,
+            onTap: onClear,
+            label: 'پاک کردن گفتگو',
+          ),
         ],
       ),
     );
@@ -467,7 +525,9 @@ class _BrandIdentity extends StatelessWidget {
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppTheme.online,
-                    boxShadow: <BoxShadow>[BoxShadow(color: AppTheme.online, blurRadius: 7)],
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(color: AppTheme.online, blurRadius: 7),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -482,7 +542,11 @@ class _BrandIdentity extends StatelessWidget {
 }
 
 class _GhostIconButton extends StatelessWidget {
-  const _GhostIconButton({required this.icon, required this.onTap, required this.label});
+  const _GhostIconButton({
+    required this.icon,
+    required this.onTap,
+    required this.label,
+  });
 
   final IconData icon;
   final VoidCallback onTap;
@@ -524,9 +588,12 @@ class _TypingDots extends StatefulWidget {
   State<_TypingDots> createState() => _TypingDotsState();
 }
 
-class _TypingDotsState extends State<_TypingDots> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat();
+class _TypingDotsState extends State<_TypingDots>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  )..repeat();
 
   @override
   void dispose() {
@@ -598,12 +665,14 @@ class _Composer extends StatelessWidget {
     required this.focus,
     required this.onSend,
     required this.bottomInset,
+    this.hint = 'پیام خود را بنویسید…',
   });
 
   final TextEditingController controller;
   final FocusNode focus;
   final VoidCallback onSend;
   final double bottomInset;
+  final String hint;
 
   @override
   Widget build(BuildContext context) {
@@ -625,7 +694,9 @@ class _Composer extends StatelessWidget {
                 width: focused ? 1.2 : 0.8,
               ),
               boxShadow: focused
-                  ? const <BoxShadow>[BoxShadow(color: AppTheme.glowFocus, blurRadius: 18)]
+                  ? const <BoxShadow>[
+                      BoxShadow(color: AppTheme.glowFocus, blurRadius: 18),
+                    ]
                   : null,
             ),
             child: Row(
@@ -645,13 +716,16 @@ class _Composer extends StatelessWidget {
                       height: 1.6,
                       color: AppTheme.textPrimary,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isCollapsed: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
                       border: InputBorder.none,
-                      hintText: 'پیام خود را بنویسید…',
+                      hintText: hint,
                       hintTextDirection: TextDirection.rtl,
-                      hintStyle: TextStyle(
+                      hintStyle: const TextStyle(
                         fontFamily: AppTheme.fontFa,
                         fontSize: 14,
                         color: AppTheme.textSecondary,
@@ -697,12 +771,124 @@ class _SendButton extends StatelessWidget {
               ? const SizedBox(
                   width: 22,
                   height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.4,
+                    color: Colors.white,
+                  ),
                 )
-              : const Icon(Icons.arrow_upward_rounded, size: 24, color: Colors.white),
+              : const Icon(
+                  Icons.arrow_upward_rounded,
+                  size: 24,
+                  color: Colors.white,
+                ),
         ),
       ),
     );
   }
 }
 
+/// Landing hero on an empty conversation: robot avatar, title, a large centered
+/// ask box, and footer links — mirrors the hmrbot.com/ai landing design.
+class _HeroLanding extends StatelessWidget {
+  const _HeroLanding({
+    required this.controller,
+    required this.focus,
+    required this.onSend,
+    required this.bottomInset,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focus;
+  final VoidCallback onSend;
+  final double bottomInset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 640),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(20, 24, 20, 16 + bottomInset),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      color: AppTheme.glow,
+                      blurRadius: 48,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  'assets/images/hmr-avatar.png',
+                  width: 92,
+                  height: 92,
+                  filterQuality: FilterQuality.medium,
+                ),
+              ),
+              const SizedBox(height: 22),
+              const Text(
+                'همر، هوش مصنوعی متخصص موبایل',
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+                style: TextStyle(
+                  fontFamily: AppTheme.fontFa,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                  height: 1.6,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 26),
+              _Composer(
+                controller: controller,
+                focus: focus,
+                onSend: onSend,
+                bottomInset: 0,
+                hint: 'هر سوالی در باره موبایل دارید بپرسید',
+              ),
+              const SizedBox(height: 24),
+              const _FooterLinks(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Privacy / about / disclaimer footer links -> hmrbot.com pages.
+class _FooterLinks extends StatelessWidget {
+  const _FooterLinks();
+
+  Future<void> _open(String path) async {
+    await launchUrl(
+      Uri.parse('https://hmrbot.com$path'),
+      mode: LaunchMode.externalApplication,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget link(String label, String path) => GestureDetector(
+      onTap: () => _open(path),
+      child: Text(label, style: AppTheme.subtitle),
+    );
+    const Widget sep = Text('  |  ', style: AppTheme.subtitle);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      textDirection: TextDirection.rtl,
+      children: <Widget>[
+        link('حریم خصوصی', '/privacy'),
+        sep,
+        link('درباره ما', '/about'),
+        sep,
+        link('سلب مسئولیت', '/disclaimer'),
+      ],
+    );
+  }
+}
