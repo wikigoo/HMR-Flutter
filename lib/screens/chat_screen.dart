@@ -173,12 +173,14 @@ class _ChatScreenState extends State<ChatScreen> {
               children: <Widget>[
                 _AppBar(onClear: _confirmClear),
                 const PriceDisclaimer(),
-                Expanded(child: _messageList()),
-                _Composer(
-                  controller: _input,
-                  focus: _focus,
-                  onSend: () => _send(),
-                  bottomInset: safe.bottom,
+                Expanded(child: _centered(_messageList())),
+                _centered(
+                  _Composer(
+                    controller: _input,
+                    focus: _focus,
+                    onSend: () => _send(),
+                    bottomInset: safe.bottom,
+                  ),
                 ),
               ],
             ),
@@ -187,6 +189,17 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
+
+  static const double _kContentMaxWidth = 760;
+
+  // Constrains chat content to a readable, centered column on wide screens
+  // (desktop / web) while staying full-width on phones -- ChatGPT-style.
+  Widget _centered(Widget child) => Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _kContentMaxWidth),
+          child: child,
+        ),
+      );
 
   Widget _messageList() {
     return Consumer<ChatProvider>(
