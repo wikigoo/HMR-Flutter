@@ -811,24 +811,7 @@ class _HeroLanding extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: AppTheme.glow,
-                      blurRadius: 48,
-                      spreadRadius: 4,
-                    ),
-                  ],
-                ),
-                child: Image.asset(
-                  'assets/images/hmr-avatar.png',
-                  width: 92,
-                  height: 92,
-                  filterQuality: FilterQuality.medium,
-                ),
-              ),
+              const HmrAvatar(size: 92, glow: true),
               const SizedBox(height: 22),
               const Text(
                 'همر، هوش مصنوعی متخصص موبایل',
