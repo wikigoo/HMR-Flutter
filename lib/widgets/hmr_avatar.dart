@@ -2,36 +2,45 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// The HMR robot mark. A clean transparent-PNG logo on the dark UI; an optional
-/// soft cyan glow is used only on large hero placements (kept off for the small
-/// app-bar / bubble avatars to respect the performance budget).
+/// The HMR robot mark set in the brand's gradient ring over a dark core, with a
+/// soft cyan glow — matches the design-system Avatar. One widget for every
+/// placement (app bar, AI bubble, hero, login). `glow` can be turned off where a
+/// placement wants a flat mark.
 class HmrAvatar extends StatelessWidget {
-  const HmrAvatar({super.key, this.size = 30, this.glow = false});
+  const HmrAvatar({super.key, this.size = 30, this.glow = true});
 
   final double size;
   final bool glow;
 
   @override
   Widget build(BuildContext context) {
+    final double pad = size > 60 ? 3 : 1.5;
+    final double blur = size > 60 ? 34 : 16;
     return Container(
       width: size,
       height: size,
-      decoration: glow
-          ? const BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: <BoxShadow>[
-                BoxShadow(
-                  color: AppTheme.glow,
-                  blurRadius: 40,
-                  spreadRadius: 2,
-                ),
-              ],
-            )
-          : null,
-      child: Image.asset(
-        'assets/images/hmr-mark.png',
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.medium,
+      padding: EdgeInsets.all(pad),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[AppTheme.cyan, AppTheme.blue],
+        ),
+        boxShadow: glow
+            ? <BoxShadow>[BoxShadow(color: AppTheme.glow, blurRadius: blur)]
+            : null,
+      ),
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppTheme.avatarCore,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: EdgeInsets.all(size * 0.11),
+          child: Image.asset('assets/images/hmr-mark.png', fit: BoxFit.contain),
+        ),
       ),
     );
   }
