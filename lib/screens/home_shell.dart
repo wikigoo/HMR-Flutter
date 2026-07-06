@@ -36,6 +36,11 @@ class _HomeShellState extends State<HomeShell> {
   /// conversations index once the user sends the first message.
   late String _activeId = _uuid.v4();
 
+  /// Desktop sidebar visibility, toggled by the hamburger button.
+  bool _sidebarOpen = true;
+
+  void _toggleSidebar() => setState(() => _sidebarOpen = !_sidebarOpen);
+
   @override
   void initState() {
     super.initState();
@@ -79,6 +84,7 @@ class _HomeShellState extends State<HomeShell> {
       return const ConversationsScreen();
     }
 
+    final double topInset = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: AppTheme.navy950,
       resizeToAvoidBottomInset: true,
@@ -93,12 +99,14 @@ class _HomeShellState extends State<HomeShell> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 // RTL: first child sits on the right — the sidebar.
-                _DesktopSidebar(
-                  activeId: _activeId,
-                  onNewChat: _startNewChat,
-                  onSelect: _selectConversation,
-                  onDelete: _deleteConversation,
-                ),
+                if (_sidebarOpen)
+                  _DesktopSidebar(
+                    activeId: _activeId,
+                    onNewChat: _startNewChat,
+                    onSelect: _selectConversation,
+                    onDelete: _deleteConversation,
+                    onToggle: _toggleSidebar,
+                  ),
                 Expanded(
                   child: ChangeNotifierProvider<ChatProvider>(
                     // Recreate the chat state whenever the active conversation
@@ -126,6 +134,13 @@ class _HomeShellState extends State<HomeShell> {
               ],
             ),
           ),
+          // Floating hamburger to reopen the sidebar once it is collapsed.
+          if (!_sidebarOpen)
+            Positioned(
+              top: topInset + 12,
+              right: 16,
+              child: _GlassHamburger(onTap: _toggleSidebar),
+            ),
         ],
       ),
     );
@@ -140,12 +155,14 @@ class _DesktopSidebar extends StatelessWidget {
     required this.onNewChat,
     required this.onSelect,
     required this.onDelete,
+    required this.onToggle,
   });
 
   final String activeId;
   final VoidCallback onNewChat;
   final ValueChanged<String> onSelect;
   final ValueChanged<String> onDelete;
+  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -160,19 +177,26 @@ class _DesktopSidebar extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // Brand.
-            const Row(
+            // Brand + collapse (hamburger) button.
+            Row(
               children: <Widget>[
-                HmrAvatar(size: 40),
-                SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text('HMR', style: AppTheme.appTitle),
-                    SizedBox(height: 2),
-                    Text('مشاور هوشمند موبایل', style: AppTheme.subtitle),
-                  ],
+                const HmrAvatar(size: 40),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text('HMR', style: AppTheme.appTitle),
+                      SizedBox(height: 2),
+                      Text('مشاور هوشمند موبایل', style: AppTheme.subtitle),
+                    ],
+                  ),
+                ),
+                _GlassHamburger(
+                  onTap: onToggle,
+                  icon: Icons.menu_open_rounded,
+                  label: 'بستن نوار کناری',
                 ),
               ],
             ),
@@ -543,6 +567,42 @@ class _Avatar extends StatelessWidget {
           fontSize: 16,
           fontWeight: FontWeight.w700,
           color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+/// Circular glass icon button — the sidebar collapse control and the floating
+/// button that reopens the sidebar.
+class _GlassHamburger extends StatelessWidget {
+  const _GlassHamburger({
+    required this.onTap,
+    this.icon = Icons.menu_rounded,
+    this.label = 'نوار کناری',
+  });
+
+  final VoidCallback onTap;
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppTheme.inputFill,
+            border: Border.all(color: AppTheme.ghostBorder, width: 0.8),
+          ),
+          child: Icon(icon, size: 20, color: const Color(0xFFD6D6F2)),
         ),
       ),
     );
