@@ -837,7 +837,7 @@ class _HeroLanding extends StatelessWidget {
               const HmrAvatar(size: 92, glow: true),
               const SizedBox(height: 22),
               const Text(
-                'همر، هوش مصنوعی متخصص موبایل',
+                'امروز چطور می‌تونم کمکت کنم؟',
                 textAlign: TextAlign.center,
                 textDirection: TextDirection.rtl,
                 style: TextStyle(
