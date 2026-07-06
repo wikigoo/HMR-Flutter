@@ -90,7 +90,8 @@ class HmrApp extends StatelessWidget {
           );
         },
         // Launch directly — no mandatory auth gate.
-        // Silent sign-in happens inside ConversationsScreen.initState().
+        // Silent sign-in happens inside ConversationsScreen.initState();
+        // signing in is offered in the sidebar account card.
         home: const ConversationsScreen(),
       ),
     );
