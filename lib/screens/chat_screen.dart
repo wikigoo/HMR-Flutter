@@ -15,10 +15,20 @@ import '../widgets/hmr_background.dart';
 import '../widgets/price_disclaimer.dart';
 
 /// HMR Assistant — the single chat surface.
+///
+/// [embedded] is set when the chat is hosted inside the desktop [HomeShell]
+/// (persistent sidebar + chat pane). In that mode it renders just its content
+/// column — the shell already paints the background and provides the Scaffold —
+/// and drops the mobile-only back button.
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key, required this.conversationId});
+  const ChatScreen({
+    super.key,
+    required this.conversationId,
+    this.embedded = false,
+  });
 
   final String conversationId;
+  final bool embedded;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -174,6 +184,42 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final EdgeInsets safe = MediaQuery.of(context).padding;
+    final Widget content = Consumer<ChatProvider>(
+      builder: (BuildContext context, ChatProvider chat, _) {
+        final bool empty = chat.messages.isEmpty && !chat.isLoading;
+        return Column(
+          children: <Widget>[
+            _AppBar(onClear: _confirmClear, showBack: !widget.embedded),
+            if (empty)
+              Expanded(
+                child: _HeroLanding(
+                  controller: _input,
+                  focus: _focus,
+                  onSend: () => _send(),
+                  bottomInset: safe.bottom,
+                ),
+              )
+            else ...<Widget>[
+              Expanded(child: _centered(_messageList())),
+              _centered(
+                _Composer(
+                  controller: _input,
+                  focus: _focus,
+                  onSend: () => _send(),
+                  bottomInset: safe.bottom,
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+
+    // Embedded in the desktop shell: the shell owns the background + Scaffold.
+    if (widget.embedded) {
+      return SafeArea(bottom: false, child: content);
+    }
+
     return Scaffold(
       backgroundColor: AppTheme.navy950,
       extendBodyBehindAppBar: true,
@@ -181,39 +227,7 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Stack(
         children: <Widget>[
           const HmrBackground(),
-          SafeArea(
-            bottom: false,
-            child: Consumer<ChatProvider>(
-              builder: (BuildContext context, ChatProvider chat, _) {
-                final bool empty = chat.messages.isEmpty && !chat.isLoading;
-                return Column(
-                  children: <Widget>[
-                    _AppBar(onClear: _confirmClear),
-                    if (empty)
-                      Expanded(
-                        child: _HeroLanding(
-                          controller: _input,
-                          focus: _focus,
-                          onSend: () => _send(),
-                          bottomInset: safe.bottom,
-                        ),
-                      )
-                    else ...<Widget>[
-                      Expanded(child: _centered(_messageList())),
-                      _centered(
-                        _Composer(
-                          controller: _input,
-                          focus: _focus,
-                          onSend: () => _send(),
-                          bottomInset: safe.bottom,
-                        ),
-                      ),
-                    ],
-                  ],
-                );
-              },
-            ),
-          ),
+          SafeArea(bottom: false, child: content),
         ],
       ),
     );
@@ -470,9 +484,10 @@ class _CategoryTile extends StatelessWidget {
 
 /// Transparent top bar: back · brand identity · clear-history.
 class _AppBar extends StatelessWidget {
-  const _AppBar({required this.onClear});
+  const _AppBar({required this.onClear, this.showBack = true});
 
   final VoidCallback onClear;
+  final bool showBack;
 
   @override
   Widget build(BuildContext context) {
@@ -483,11 +498,15 @@ class _AppBar extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          _GhostIconButton(
-            icon: Icons.arrow_back_ios_new,
-            onTap: () => Navigator.maybePop(context),
-            label: 'بازگشت',
-          ),
+          if (showBack)
+            _GhostIconButton(
+              icon: Icons.arrow_back_ios_new,
+              onTap: () => Navigator.maybePop(context),
+              label: 'بازگشت',
+            )
+          else
+            // Keep the brand visually centred against the clear button.
+            const SizedBox(width: 40),
           const Expanded(child: _BrandIdentity()),
           _GhostIconButton(
             icon: Icons.delete_sweep_outlined,
