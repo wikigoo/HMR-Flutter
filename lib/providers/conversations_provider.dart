@@ -53,6 +53,37 @@ class ConversationsProvider extends ChangeNotifier {
     return conv;
   }
 
+  /// Insert-or-update in one call. Used by the desktop shell, where a "new
+  /// chat" starts with a client-side id that is only committed to the index
+  /// once the user actually sends the first message (no ghost rows).
+  Future<void> upsertConversation(
+    String id, {
+    required String title,
+    required String lastMessage,
+  }) async {
+    final int idx = _all.indexWhere((c) => c.id == id);
+    if (idx == -1) {
+      final DateTime now = DateTime.now();
+      _all.insert(
+        0,
+        ConversationModel(
+          id: id,
+          title: title,
+          createdAt: now,
+          updatedAt: now,
+          lastMessage: lastMessage,
+        ),
+      );
+    } else {
+      _all[idx].title = title;
+      _all[idx].lastMessage = lastMessage;
+      _all[idx].updatedAt = DateTime.now();
+    }
+    _all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    await _saveIndex();
+    notifyListeners();
+  }
+
   Future<void> updateConversation(
     String id, {
     String? title,

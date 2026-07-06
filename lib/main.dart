@@ -9,7 +9,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/conversations_provider.dart';
-import 'screens/conversations_screen.dart';
+import 'screens/home_shell.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -83,10 +83,10 @@ class HmrApp extends StatelessWidget {
             ),
           );
         },
-        // Launch directly — no mandatory auth gate.
-        // Silent sign-in happens inside ConversationsScreen.initState();
-        // signing in is offered in the sidebar account card.
-        home: const ConversationsScreen(),
+        // Launch directly — no mandatory auth gate. HomeShell picks the
+        // mobile (list + drawer) or desktop (persistent sidebar) layout by
+        // width; silent sign-in + history load happen on first frame.
+        home: const HomeShell(),
       ),
     );
   }
