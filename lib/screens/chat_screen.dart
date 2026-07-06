@@ -189,7 +189,11 @@ class _ChatScreenState extends State<ChatScreen> {
         final bool empty = chat.messages.isEmpty && !chat.isLoading;
         return Column(
           children: <Widget>[
-            _AppBar(onClear: _confirmClear, showBack: !widget.embedded),
+            // In the desktop shell the sidebar already carries the brand, so the
+            // empty/hero state stays chrome-free (matches the reference design);
+            // the slim bar returns once a conversation is in progress.
+            if (!widget.embedded || !empty)
+              _AppBar(onClear: _confirmClear, showBack: !widget.embedded),
             if (empty)
               Expanded(
                 child: _HeroLanding(
