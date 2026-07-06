@@ -196,12 +196,31 @@ class _ChatScreenState extends State<ChatScreen> {
               _AppBar(onClear: _confirmClear, showBack: !widget.embedded),
             if (empty)
               Expanded(
-                child: _HeroLanding(
-                  controller: _input,
-                  focus: _focus,
-                  onSend: () => _send(),
-                  bottomInset: safe.bottom,
-                ),
+                child: widget.embedded
+                    // Desktop: hero centred, footer links pinned to the bottom.
+                    ? Column(
+                        children: <Widget>[
+                          Expanded(
+                            child: _HeroLanding(
+                              controller: _input,
+                              focus: _focus,
+                              onSend: () => _send(),
+                              bottomInset: 0,
+                              showFooter: false,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 18 + safe.bottom),
+                            child: const _FooterLinks(),
+                          ),
+                        ],
+                      )
+                    : _HeroLanding(
+                        controller: _input,
+                        focus: _focus,
+                        onSend: () => _send(),
+                        bottomInset: safe.bottom,
+                      ),
               )
             else ...<Widget>[
               Expanded(child: _centered(_messageList())),
@@ -688,6 +707,7 @@ class _Composer extends StatelessWidget {
     required this.onSend,
     required this.bottomInset,
     this.hint = 'پیام خود را بنویسید…',
+    this.centerHint = false,
   });
 
   final TextEditingController controller;
@@ -695,6 +715,7 @@ class _Composer extends StatelessWidget {
   final VoidCallback onSend;
   final double bottomInset;
   final String hint;
+  final bool centerHint;
 
   @override
   Widget build(BuildContext context) {
@@ -731,6 +752,7 @@ class _Composer extends StatelessWidget {
                     minLines: 1,
                     maxLines: 4,
                     textDirection: TextDirection.rtl,
+                    textAlign: centerHint ? TextAlign.center : TextAlign.start,
                     textInputAction: TextInputAction.newline,
                     style: const TextStyle(
                       fontFamily: AppTheme.fontFa,
@@ -817,12 +839,17 @@ class _HeroLanding extends StatelessWidget {
     required this.focus,
     required this.onSend,
     required this.bottomInset,
+    this.showFooter = true,
   });
 
   final TextEditingController controller;
   final FocusNode focus;
   final VoidCallback onSend;
   final double bottomInset;
+
+  /// On desktop the footer is pinned to the bottom of the pane instead, so the
+  /// hero renders without its inline footer.
+  final bool showFooter;
 
   @override
   Widget build(BuildContext context) {
@@ -855,9 +882,12 @@ class _HeroLanding extends StatelessWidget {
                 onSend: onSend,
                 bottomInset: 0,
                 hint: 'هر سوالی در باره موبایل دارید بپرسید',
+                centerHint: true,
               ),
-              const SizedBox(height: 24),
-              const _FooterLinks(),
+              if (showFooter) ...<Widget>[
+                const SizedBox(height: 24),
+                const _FooterLinks(),
+              ],
             ],
           ),
         ),
