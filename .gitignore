@@ -41,3 +41,6 @@ macos/Pods/
 .vscode/
 *.swp
 *.swo
+
+# local build logs
+build_err.log
