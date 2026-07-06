@@ -72,20 +72,14 @@ class HmrApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         builder: (BuildContext context, Widget? child) {
-          // On desktop/web wide screens, constrain the UI to a max-width
-          // column centered on a solid navy background. The glow blobs
-          // (HmrBackground) are inside each screen's Stack, so they are
-          // naturally clipped to the 900 px column along with the content.
+          // Full-bleed: the app fills the viewport width on web/desktop.
+          // Each screen's own padding and max bubble widths keep content
+          // readable; HmrBackground now spans the full width.
           return Directionality(
             textDirection: TextDirection.rtl,
             child: ColoredBox(
               color: AppTheme.navy950,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 900),
-                  child: child ?? const SizedBox.shrink(),
-                ),
-              ),
+              child: child ?? const SizedBox.shrink(),
             ),
           );
         },
