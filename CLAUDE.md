@@ -12,7 +12,7 @@ Instructions for Claude Code and any AI coding assistant working in this reposit
 |---|---|
 | Frontend | Flutter 3.44.2, Android-first |
 | AI backend | Flowise on a self-hosted VPS (`https://srv.hmrbot.com`) |
-| Auth | Google Sign-In — Firebase-free, direct Google OAuth |
+| Auth | Google Sign-In via **Firebase / Google Cloud** — project `ir-hmrbot-app` |
 | Storage | SQLite (messages) + SharedPreferences (conversation index) — 100 % on-device, no sync |
 | Locale | Persian (Farsi), RTL, Jalali (Shamsi) calendar |
 
