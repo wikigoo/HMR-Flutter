@@ -209,7 +209,6 @@ After every code change, before committing:
 | 1 | Rotate signing keystore; purge old keystore from git history; enroll Play App Signing | Needs `keytool` + Play Console + force-push to history |
 | 2 | Deploy VPS reverse proxy to remove API token from client binary | Needs VPS SSH + server deployment |
 | 3 | Register SHA-1 / SHA-256 fingerprints in Google Cloud Console | Needs Google Cloud login |
-| 4 | Migrate `flutter_markdown` → `flutter_markdown_plus` (upstream deprecated) | Post-launch, non-blocking |
 
 ---
 
