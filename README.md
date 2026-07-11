@@ -11,7 +11,7 @@ Built with Flutter (Android-first), it features a glassmorphism UI, full RTL sup
 - **AI-powered recommendations** via Flowise on a dedicated VPS
 - **Five pillars**: Phone · Laptop · Tablet · Earphones · Accessories
 - **Persistent conversation history** — multi-session SQLite storage, 100 % on-device
-- **Google Sign-In** (Firebase-free; direct Google OAuth)
+- **Google Sign-In** via Firebase / Google Cloud (project `ir-hmrbot-app`)
 - **Offline detection** — immediate user feedback before attempting any network call
 - **Resilient API layer** — up to 2 automatic retries with 1 s / 2 s backoffs for transient failures
 - **Error bubbles** with a one-tap retry button for recoverable failures
@@ -34,7 +34,7 @@ Built with Flutter (Android-first), it features a glassmorphism UI, full RTL sup
 | Framework | Flutter 3.44.2 · Dart 3.12.2 |
 | Android build | AGP 9.0.1 · compileSdk / targetSdk 36 · minSdk 24 |
 | AI backend | [Flowise](https://github.com/FlowiseAI/Flowise) — self-hosted VPS |
-| Auth | `google_sign_in ^6.2.1` (no Firebase dependency) |
+| Auth | `google_sign_in ^6.2.1` via Firebase / Google Cloud (project `ir-hmrbot-app`) |
 | HTTP | `http ^1.2.0` |
 | External links | `url_launcher ^6.3.0` (opens AI-response links in the device browser) |
 | Local storage | `sqflite ^2.3.3` (messages) · `shared_preferences ^2.2.2` (conversation index) |
