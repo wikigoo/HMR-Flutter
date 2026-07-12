@@ -392,6 +392,7 @@ class _EmptyConversations extends StatelessWidget {
 
 // ⚠️ USER ACTION REQUIRED: replace with the live privacy-policy URL before release.
 const String _kPrivacyPolicyUrl = 'https://hmrbot.com/privacy';
+const String _kDownloadUrl = 'https://hmrbot.com/download';
 
 class _Sidebar extends StatelessWidget {
   const _Sidebar();
@@ -432,6 +433,17 @@ class _Sidebar extends StatelessWidget {
                   alignment: Alignment.centerRight,
                   child: Text('بیشتر', style: AppTheme.sectionLabel),
                 ),
+              ),
+              _DrawerTile(
+                icon: Icons.download_rounded,
+                label: 'دانلود اپلیکیشن',
+                onTap: () async {
+                  Navigator.pop(context);
+                  await launchUrl(
+                    Uri.parse(_kDownloadUrl),
+                    mode: LaunchMode.externalApplication,
+                  );
+                },
               ),
               _DrawerTile(
                 icon: Icons.info_outline_rounded,

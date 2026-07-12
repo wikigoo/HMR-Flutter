@@ -707,7 +707,6 @@ class _Composer extends StatelessWidget {
     required this.onSend,
     required this.bottomInset,
     this.hint = 'پیام خود را بنویسید…',
-    this.centerHint = false,
   });
 
   final TextEditingController controller;
@@ -715,7 +714,6 @@ class _Composer extends StatelessWidget {
   final VoidCallback onSend;
   final double bottomInset;
   final String hint;
-  final bool centerHint;
 
   @override
   Widget build(BuildContext context) {
@@ -752,7 +750,7 @@ class _Composer extends StatelessWidget {
                     minLines: 1,
                     maxLines: 4,
                     textDirection: TextDirection.rtl,
-                    textAlign: centerHint ? TextAlign.center : TextAlign.start,
+                    textAlign: TextAlign.start,
                     textInputAction: TextInputAction.newline,
                     style: const TextStyle(
                       fontFamily: AppTheme.fontFa,
@@ -881,8 +879,7 @@ class _HeroLanding extends StatelessWidget {
                 focus: focus,
                 onSend: onSend,
                 bottomInset: 0,
-                hint: 'هر سوالی در باره موبایل دارید بپرسید',
-                centerHint: true,
+                hint: 'هر سوالی درباره موبایل دارید بپرسید',
               ),
               if (showFooter) ...<Widget>[
                 const SizedBox(height: 24),
@@ -918,6 +915,8 @@ class _FooterLinks extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       textDirection: TextDirection.rtl,
       children: <Widget>[
+        link('دانلود اپلیکیشن', '/download'),
+        sep,
         link('حریم خصوصی', '/privacy'),
         sep,
         link('درباره ما', '/about'),
