@@ -7,9 +7,6 @@ class ApiService {
   static const String _baseUrl = 'https://srv.hmrbot.com';
   static const String _chatflowId = '463b566b-f0f1-44d8-b498-3827c188783a';
 
-  // Injected at compile time: flutter build apk --dart-define=HMR_API_TOKEN=<token>
-  static const String _apiToken = String.fromEnvironment('HMR_API_TOKEN');
-
   static const Duration _timeout = Duration(seconds: 30);
   static const Duration _preflightTimeout = Duration(seconds: 3);
   static const int _maxRetries = 2;
@@ -47,7 +44,6 @@ class ApiService {
 
     final Uri url = Uri.parse('$_baseUrl/api/v1/prediction/$_chatflowId');
     final Map<String, String> headers = {
-      'Authorization': 'Bearer $_apiToken',
       'Content-Type': 'application/json',
     };
     final Map<String, dynamic> body = {

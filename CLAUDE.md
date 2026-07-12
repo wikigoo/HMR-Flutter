@@ -156,20 +156,22 @@ Required because `sqflite_android 2.4.3` hardcodes `google()` in its buildscript
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `HMR_API_TOKEN` | **Yes** | Flowise Bearer token |
 | `SENTRY_DSN` | No | Sentry project DSN; empty string disables Sentry silently |
+
+> **API token:** The Flowise Bearer token is injected **server-side** by the nginx
+> reverse proxy (`/etc/nginx/hmr-auth.conf`). The app sends no `Authorization` header;
+> the client binary carries no secrets.
 
 ### Debug run
 
 ```bash
-flutter run --dart-define=HMR_API_TOKEN=<token>
+flutter run
 ```
 
 ### Release build
 
 ```bash
 flutter build appbundle --release \
-  --dart-define=HMR_API_TOKEN=<token> \
   --dart-define=SENTRY_DSN=<dsn>
 ```
 
@@ -181,8 +183,7 @@ Signing is read from env vars in CI (`HMR_KEY_ALIAS`, `HMR_KEY_PASSWORD`, `HMR_S
 
 - **Never** print, log, or commit any secret: tokens, keystore passwords, `key.properties`, `google-services.json`.
 - **Never** commit the keystore file under any circumstances.
-- The Flowise API token lives in the compiled binary via `--dart-define=HMR_API_TOKEN` — this is a known, tracked technical debt. **Do not move it** until a VPS reverse proxy is live and tested. Moving the token reference without a proxy would immediately break the app in production.
-- When the proxy is deployed: update `_baseUrl` in `api_service.dart` to point to the proxy endpoint and remove the `Authorization` header. The proxy holds the real token server-side.
+- The Flowise API token is injected **server-side** by the nginx reverse proxy (`hmr-auth.conf`). The app sends no `Authorization` header and the client binary carries no secrets. This was completed in July 2026.
 
 ---
 
@@ -207,8 +208,7 @@ After every code change, before committing:
 | # | Action | Blocker |
 |---|---|---|
 | 1 | Rotate signing keystore; purge old keystore from git history; enroll Play App Signing | Needs `keytool` + Play Console + force-push to history |
-| 2 | Deploy VPS reverse proxy to remove API token from client binary | Needs VPS SSH + server deployment |
-| 3 | Register SHA-1 / SHA-256 fingerprints in Google Cloud Console | Needs Google Cloud login |
+| 2 | Register SHA-1 / SHA-256 fingerprints in Google Cloud Console | Needs Google Cloud login |
 
 ---
 
