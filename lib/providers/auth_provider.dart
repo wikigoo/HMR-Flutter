@@ -31,7 +31,12 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      _user = await _googleSignIn.signInSilently();
+      // On web, signInSilently() triggers FedCM which rejects with
+      // NetworkError on every page load, causing a logout+retry loop.
+      // Skip it on web; users sign in manually via the drawer button.
+      if (!kIsWeb) {
+        _user = await _googleSignIn.signInSilently();
+      }
     } catch (_) {
       _user = null;
     }
