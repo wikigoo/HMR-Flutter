@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
+import 'app_colors.g.dart';
+
 /// HMR design tokens — dark neon-blue glassmorphism.
 /// Every color is expressed as `Color(0xAARRGGBB)` (no `withOpacity`)
 /// to stay Dart 3.x / lint compliant.
 class AppTheme {
   AppTheme._();
 
-  // ── Neon ramp (the brand's "light") ──────────────────────────────
-  static const Color cyan = Color(0xFF00D4FF);
-  static const Color blue = Color(0xFF2F6BFF);
-  static const Color indigo = Color(0xFF6366F1);
+  // ── Neon ramp (the brand's "light") — from HMR-Design tokens ──────
+  static const Color cyan = HmrTokens.cyan;
+  static const Color blue = HmrTokens.blue;
+  static const Color indigo = HmrTokens.indigo;
 
   // ── Navy base / surfaces ─────────────────────────────────────────
-  static const Color navy950 = Color(0xFF05070F);
+  static const Color navy950 = HmrTokens.navy950;
   static const Color screenTop = Color(0xFF0C1733);
   static const Color screenMid = Color(0xFF080F24);
   static const Color screenBottom = Color(0xFF04060F);
@@ -23,14 +25,14 @@ class AppTheme {
   // ── Text ─────────────────────────────────────────────────────────
   static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textBody = Color(0xFFE2E8F0); // AI prose
-  static const Color textSecondary = Color(0xFF8A96B3); // subtitle / muted
+  static const Color textSecondary = HmrTokens.muted; // subtitle / muted
   static const Color timeMuted = Color(0xFF7E8AA8); // AI timestamp
   static const Color timeOnUser = Color(0xFFBCD5F5); // user timestamp
   static const Color chipText = Color(0xFFDCEEFE);
 
   // ── Status ───────────────────────────────────────────────────────
-  static const Color online = Color(0xFF34E0A1);
-  static const Color amber = Color(0xFFF6B73C);
+  static const Color online = HmrTokens.success;
+  static const Color amber = HmrTokens.amber;
   static const Color amberText = Color(0xFFE7CF9B);
 
   // ── Glass surfaces (backdrop-blur intended) ──────────────────────
