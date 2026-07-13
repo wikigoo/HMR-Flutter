@@ -23,8 +23,8 @@ class AppTheme {
   static const Color avatarBottom = Color(0xFF08101F);
 
   // ── Text ─────────────────────────────────────────────────────────
-  static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textBody = Color(0xFFE2E8F0); // AI prose
+  static const Color textPrimary = HmrTokens.text; // #EAF2FF (was pure white)
+  static const Color textBody = HmrTokens.text2; // #B9C6E4 — AI prose (was #E2E8F0)
   static const Color textSecondary = HmrTokens.muted; // subtitle / muted
   static const Color timeMuted = Color(0xFF7E8AA8); // AI timestamp
   static const Color timeOnUser = Color(0xFFBCD5F5); // user timestamp
