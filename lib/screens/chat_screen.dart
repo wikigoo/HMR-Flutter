@@ -906,10 +906,8 @@ class _FooterLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget link(String label, String path) => GestureDetector(
-      onTap: () => _open(path),
-      child: Text(label, style: AppTheme.subtitle),
-    );
+    Widget link(String label, String path) =>
+        _HoverLink(label: label, onTap: () => _open(path));
     const Widget sep = Text('  |  ', style: AppTheme.subtitle);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -923,6 +921,43 @@ class _FooterLinks extends StatelessWidget {
         sep,
         link('سلب مسئولیت', '/disclaimer'),
       ],
+    );
+  }
+}
+
+/// A footer link that brightens to the brand cyan and underlines on hover
+/// (web/desktop), with a pointer cursor.
+class _HoverLink extends StatefulWidget {
+  const _HoverLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  State<_HoverLink> createState() => _HoverLinkState();
+}
+
+class _HoverLinkState extends State<_HoverLink> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Text(
+          widget.label,
+          style: AppTheme.subtitle.copyWith(
+            color: _hovering ? AppTheme.cyan : null,
+            decoration:
+                _hovering ? TextDecoration.underline : TextDecoration.none,
+            decorationColor: AppTheme.cyan,
+          ),
+        ),
+      ),
     );
   }
 }
