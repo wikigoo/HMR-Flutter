@@ -1,0 +1,28 @@
+name: Design Tokens Drift
+
+# Fails if lib/theme/app_colors.g.dart has drifted from the HMR-Design single
+# source of truth. Regenerate with `bash tool/gen_tokens.sh` and commit.
+
+on:
+  push:
+    branches: [main]
+    paths: ['lib/theme/app_colors.g.dart', 'tool/gen_tokens.sh', '.github/workflows/design-tokens-drift.yml']
+  pull_request:
+    paths: ['lib/theme/app_colors.g.dart', 'tool/gen_tokens.sh', '.github/workflows/design-tokens-drift.yml']
+  workflow_dispatch:
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Regenerate app_colors.g.dart from HMR-Design
+        run: bash tool/gen_tokens.sh
+      - name: Fail if generated tokens drifted from HMR-Design
+        run: |
+          if ! git diff --quiet -- lib/theme/app_colors.g.dart; then
+            echo "::error::lib/theme/app_colors.g.dart is out of sync with HMR-Design. Run 'bash tool/gen_tokens.sh' and commit the result."
+            git --no-pager diff -- lib/theme/app_colors.g.dart
+            exit 1
+          fi
+          echo "generated design tokens are in sync with HMR-Design ✓"
