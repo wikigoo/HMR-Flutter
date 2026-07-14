@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AuthProvider extends ChangeNotifier {
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
@@ -30,15 +34,37 @@ class AuthProvider extends ChangeNotifier {
   Future<void> init() async {
     _isLoading = true;
     notifyListeners();
+
+    if (kIsWeb) {
+      // On web, a successful sign-in through the GIS `renderButton` widget
+      // (see lib/widgets/google_signin_web_button_web.dart) never returns
+      // through a method call of ours — the plugin only reports it via this
+      // stream. Subscribe once so the drawer reflects it. This is additive
+      // and web-only: it does not change how Android resolves `_user` from
+      // the direct signIn()/signInSilently() return values below.
+      _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+        _user = account;
+        notifyListeners();
+      });
+    }
+
     try {
-      // On web, signInSilently() triggers FedCM which rejects with
-      // NetworkError on every page load, causing a logout+retry loop.
-      // Skip it on web; users sign in manually via the drawer button.
-      if (!kIsWeb) {
-        _user = await _googleSignIn.signInSilently();
-      }
-    } catch (_) {
+      // signInSilently() defaults to `suppressErrors: true`, so any GIS/
+      // FedCM failure (e.g. the browser rejecting the One Tap prompt with a
+      // NetworkError because third-party sign-in prompts are blocked)
+      // resolves to `null` instead of throwing. This call is a one-shot,
+      // terminal attempt to restore a previous session — its result is never
+      // retried and never triggers another init()/render cycle, so a
+      // failing FedCM prompt cannot loop; the user just stays signed out
+      // until they use the sign-in button again.
+      _user = await _googleSignIn.signInSilently();
+    } catch (e, st) {
+      // Defensive only: suppressErrors already swallows the realistic
+      // failure modes above. If something still slips through, fail
+      // silently and terminally — never surface it to the user, never retry.
       _user = null;
+      debugPrint('AuthProvider.init: signInSilently failed: $e');
+      unawaited(Sentry.captureException(e, stackTrace: st));
     }
     _isLoading = false;
     _initialized = true;
@@ -50,15 +76,28 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
+      // Note: on web this is deprecated by the plugin (it can only
+      // synthesize a profile via the People API, with no idToken) — the web
+      // UI uses the GIS renderButton widget instead and should not reach
+      // this method. It remains the sign-in path for Android.
       final GoogleSignInAccount? account = await _googleSignIn.signIn();
       _user = account;
+      // `signIn()` already converts a user-cancelled flow into a `null`
+      // result (it catches PlatformException(kSignInCanceledError)
+      // internally), so this branch is the correct place for that message.
       _error = account == null ? 'ورود لغو شد.' : null;
       _isLoading = false;
       notifyListeners();
       return account != null;
-    } catch (e) {
+    } catch (e, st) {
       _isLoading = false;
-      _error = 'ورود ناموفق بود. لطفاً اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.';
+      // Do not blame "the internet" for every failure — that masked the
+      // real cause (a disabled People API) for a long time. Show a truthful
+      // generic message and keep the real exception visible for debugging.
+      _error = 'ورود با گوگل ناموفق بود. لطفاً دوباره تلاش کنید.';
+      final String code = e is PlatformException ? e.code : e.runtimeType.toString();
+      debugPrint('AuthProvider.signInWithGoogle failed ($code): $e');
+      unawaited(Sentry.captureException(e, stackTrace: st));
       notifyListeners();
       return false;
     }
