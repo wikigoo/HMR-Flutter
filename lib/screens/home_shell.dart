@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -8,6 +9,7 @@ import '../providers/chat_provider.dart';
 import '../providers/conversations_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/google_signin_web_button.dart';
 import '../widgets/hmr_avatar.dart';
 import '../widgets/hmr_background.dart';
 import 'chat_screen.dart';
@@ -483,6 +485,12 @@ class _SidebarAccount extends StatelessWidget {
     }
 
     // Guest → Google sign-in CTA.
+    // Web: GoogleSignIn.signIn() is deprecated on web (no idToken,
+    // People-API fallback) — use the plugin's official GIS button instead.
+    // Android keeps the existing custom button + signIn().
+    if (kIsWeb) {
+      return Center(child: renderGoogleSignInButton());
+    }
     return GestureDetector(
       onTap: auth.isLoading
           ? null
