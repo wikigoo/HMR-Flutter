@@ -23,7 +23,7 @@ class PriceDisclaimer extends StatelessWidget {
             horizontal: compact ? 12 : 16,
             vertical: compact ? 6 : 7,
           ),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppTheme.disclaimerFill,
             border: Border(
               bottom: BorderSide(color: AppTheme.disclaimerBorder, width: 0.6),
