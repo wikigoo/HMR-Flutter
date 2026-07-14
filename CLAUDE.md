@@ -12,7 +12,7 @@ Instructions for Claude Code and any AI coding assistant working in this reposit
 |---|---|
 | Frontend | Flutter 3.44.2, Android-first |
 | AI backend | Flowise on a self-hosted VPS (`https://srv.hmrbot.com`) |
-| Auth | Google Sign-In via **Firebase / Google Cloud** — project `ir-hmrbot-app` |
+| Auth | Google Sign-In via **Google Identity Services** (`google_sign_in`) — Google Cloud project `ir-hmrbot-app`. **No Firebase Auth** — this repo has no `firebase_auth`/`firebase_core` dependency. |
 | Storage | SQLite (messages) + SharedPreferences (conversation index) — 100 % on-device, no sync |
 | Locale | Persian (Farsi), RTL, Jalali (Shamsi) calendar |
 
@@ -208,7 +208,21 @@ After every code change, before committing:
 | # | Action | Blocker |
 |---|---|---|
 | 1 | Rotate signing keystore; purge old keystore from git history; enroll Play App Signing | Needs `keytool` + Play Console + force-push to history |
-| 2 | Register SHA-1 / SHA-256 fingerprints in Google Cloud Console | Needs Google Cloud login |
+
+> **Done 2026-07-14 — no longer pending:** registering the release SHA-1 in Google Cloud. Verified:
+> the release keystore's SHA-1 (`2D:5B:3E:9A:…`) matches the Android OAuth client `…og77…` in project
+> `ir-hmrbot-app`, and Android sign-in works. (Android OAuth clients take a SHA-1 only; a SHA-256 will
+> be needed for Play App Signing when item 1 is done.)
+
+## Auth notes (web)
+
+Web sign-in uses the GIS **`renderButton`** widget, not `GoogleSignIn.signIn()` — the plugin
+deprecated `signIn()` on the web and it can only synthesize a profile through the **People API**.
+Session restore across page reloads depends on `signInSilently()`, which **must stay enabled on web**
+(`AuthProvider.init()`). It defaults to `suppressErrors: true`, so a rejected FedCM/One-Tap prompt
+resolves to `null` rather than throwing — it cannot loop. Skipping it on web is what previously broke
+both session persistence *and* sign-in itself (by forcing the People API path while that API was
+disabled in the Cloud project).
 
 ---
 
