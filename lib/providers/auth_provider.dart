@@ -11,6 +11,12 @@ class AuthProvider extends ChangeNotifier {
   GoogleSignInAccount? _user;
   bool _isLoading = false;
   bool _initialized = false;
+  // `_initialized` only flips at the END of init(), but init() awaits in the
+  // middle. Both ConversationsScreen and HomeShell call `if (!initialized)
+  // init()`, so without this re-entrancy guard a second caller can slip into
+  // that async gap and run init() twice — subscribing twice to the stream below.
+  bool _initializing = false;
+  StreamSubscription<GoogleSignInAccount?>? _userChanges;
   String? _error;
 
   bool get isSignedIn => _user != null;
@@ -32,6 +38,8 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> init() async {
+    if (_initialized || _initializing) return;
+    _initializing = true;
     _isLoading = true;
     notifyListeners();
 
@@ -42,7 +50,8 @@ class AuthProvider extends ChangeNotifier {
       // stream. Subscribe once so the drawer reflects it. This is additive
       // and web-only: it does not change how Android resolves `_user` from
       // the direct signIn()/signInSilently() return values below.
-      _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+      _userChanges ??= _googleSignIn.onCurrentUserChanged
+          .listen((GoogleSignInAccount? account) {
         _user = account;
         notifyListeners();
       });
@@ -68,7 +77,14 @@ class AuthProvider extends ChangeNotifier {
     }
     _isLoading = false;
     _initialized = true;
+    _initializing = false;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _userChanges?.cancel();
+    super.dispose();
   }
 
   Future<bool> signInWithGoogle() async {
