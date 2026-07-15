@@ -40,6 +40,9 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
 
   Future<void> _openConversation(ConversationModel conv) async {
     final ConversationsProvider convs = context.read<ConversationsProvider>();
+    // Phase 4: capture the signed-in user's Google `sub` (null for guests) to
+    // use as the Flowise sessionId for cross-device chat continuity.
+    final String? uid = context.read<AuthProvider>().user?.id;
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
@@ -47,6 +50,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
           create: (_) {
             final ChatProvider p = ChatProvider(
               conversationId: conv.id,
+              userId: uid,
               onUpdate: (String title, String last) => convs.updateConversation(
                 conv.id,
                 title: title,
