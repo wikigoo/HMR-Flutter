@@ -26,8 +26,8 @@ These rules must **never** be broken regardless of the task at hand.
 2. **Branding:** Dark navy/cyan color palette defined in `AppTheme`. Do not alter brand colors or the HMR orb widget.
 3. **Five pillars:** Phone · Laptop · Tablet · Earphones · Accessories — do not remove, rename, or reorder them.
 4. **Price disclaimer:** The app must never present a specific price as definitive. Users must always be prompted to verify prices at the point of sale. The `PriceDisclaimer` widget implements this contract.
-5. **Honesty boundary:** The AI assistant must never claim capabilities that do not exist. Cross-device sync does not exist; do not claim it anywhere in the UI copy.
-6. **Flowise endpoints:** Never change `_chatflowId`, `_baseUrl`, or the `sessionId` field in `api_service.dart`. Any modification to the API layer requires a live VPS reverse proxy to be deployed first (see Security section).
+5. **Honesty boundary:** The AI assistant must never claim capabilities that do not exist. **Partial sync only:** since Phase 4 (2026-07-15), a *signed-in* user's Flowise conversation **memory** follows them across web and mobile (the Flowise `sessionId` is the Google `sub`). But the **conversation list is still 100% on-device** — there is **no list/history sync backend**. So do **not** claim full "cross-device sync" in UI copy; at most, "your signed-in chat continues across your devices."
+6. **Flowise endpoints:** Never change `_chatflowId`, `_baseUrl`, or the `sessionId` **field/signature** in `api_service.dart`. (Phase 4 changed only the *value* the caller passes — `ChatProvider` sends `userId ?? conversationId` — `api_service.dart` itself is untouched.) Any modification to the API layer requires a live VPS reverse proxy to be deployed first (see Security section).
 
 ---
 
@@ -235,7 +235,7 @@ disabled in the Cloud project).
 | `allowBackup = false` | Conversations are personal; Android Auto Backup must not exfiltrate them. |
 | Aliyun mirrors in `settings.gradle.kts` | The development team is in Iran. `dl.google.com` and Maven Central are not reliably reachable. |
 | Jalali (Shamsi) calendar for all dates | The product is built for the Iranian market; Gregorian timestamps would confuse users. |
-| 100 % local storage, no sync backend | No sync infrastructure exists. UI copy reflects this honestly — no false claims. |
+| Conversation **list** is 100% on-device (no list-sync backend) | No list-sync infrastructure exists; the index/messages stay in SharedPreferences + SQLite. Phase 4 added server-side **memory** continuity only (Flowise `sessionId = sub` for signed-in users) — not list sync. Since `sub` is one session per user, a signed-in user's separate conversations share one Flowise memory (context can carry across them); use `"${sub}:${conversationId}"` if per-conversation isolation is ever needed (at the cost of cross-device continuity). UI copy must not claim full cross-device sync. |
 | Error messages not persisted to SQLite | Error bubbles are ephemeral UI state. Persisting them would require a schema migration and add no user value; reloading a conversation shows clean history. |
 | `BackdropFilter` only on static surfaces | Per-bubble blur tanks frame rate on mid-range Android. Semi-transparent solid fills achieve the glass aesthetic at a fraction of the GPU cost. |
 | UUID v4 for all IDs | Collision-free across devices without a server; replaces previous millisecond-timestamp IDs which could collide during rapid creation. |
