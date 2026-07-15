@@ -118,8 +118,12 @@ class _HomeShellState extends State<HomeShell> {
                       final String id = _activeId;
                       final ConversationsProvider convs =
                           context.read<ConversationsProvider>();
+                      // Phase 4: signed-in user's Google `sub` (null for guests)
+                      // -> Flowise sessionId for cross-device chat continuity.
+                      final String? uid = context.read<AuthProvider>().user?.id;
                       final ChatProvider p = ChatProvider(
                         conversationId: id,
+                        userId: uid,
                         onUpdate: (String title, String last) =>
                             convs.upsertConversation(
                           id,
