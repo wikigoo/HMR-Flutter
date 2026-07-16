@@ -7,16 +7,10 @@ import '../services/api_service.dart';
 class ChatProvider extends ChangeNotifier {
   ChatProvider({
     required this.conversationId,
-    this.userId,
     this.onUpdate,
   });
 
   final String conversationId;
-
-  // Phase 4: the signed-in user's stable Google id (`sub`), or null for guests.
-  // Used as the Flowise sessionId so a signed-in user's chat context follows
-  // them across devices; guests fall back to the local per-conversation id.
-  final String? userId;
 
   final void Function(String title, String lastMessage)? onUpdate;
 
@@ -91,9 +85,7 @@ class ChatProvider extends ChangeNotifier {
     try {
       final String aiText = await _api.sendMessage(
         text,
-        // Phase 4: signed-in -> stable Google `sub` (cross-device continuity);
-        // guest -> local per-conversation id (unchanged behaviour).
-        sessionId: userId ?? conversationId,
+        sessionId: conversationId,
       );
       _lastFailedText = null;
       final MessageModel aiMsg = MessageModel.aiMessage(aiText);

@@ -1,15 +1,12 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/conversation_model.dart';
-import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/conversations_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/confirm_dialog.dart';
-import '../widgets/google_signin_web_button.dart';
 import '../widgets/hmr_avatar.dart';
 import '../widgets/hmr_background.dart';
 import 'chat_screen.dart';
@@ -48,8 +45,6 @@ class _HomeShellState extends State<HomeShell> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final AuthProvider auth = context.read<AuthProvider>();
-      if (!auth.initialized) auth.init();
       context.read<ConversationsProvider>().loadConversations();
     });
   }
@@ -118,12 +113,8 @@ class _HomeShellState extends State<HomeShell> {
                       final String id = _activeId;
                       final ConversationsProvider convs =
                           context.read<ConversationsProvider>();
-                      // Phase 4: signed-in user's Google `sub` (null for guests)
-                      // -> Flowise sessionId for cross-device chat continuity.
-                      final String? uid = context.read<AuthProvider>().uid;
                       final ChatProvider p = ChatProvider(
                         conversationId: id,
-                        userId: uid,
                         onUpdate: (String title, String last) =>
                             convs.upsertConversation(
                           id,
@@ -242,10 +233,6 @@ class _DesktopSidebar extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 8),
-            const Divider(color: AppTheme.rowDivider, height: 1),
-            const SizedBox(height: 12),
-            const _SidebarAccount(),
           ],
         ),
       ),
@@ -431,154 +418,6 @@ class _EmptyHistory extends StatelessWidget {
           'هنوز گفتگویی نداری.\nبرای شروع، سؤالت را بپرس.',
           textAlign: TextAlign.right,
           style: AppTheme.tilePreview,
-        ),
-      ),
-    );
-  }
-}
-
-/// Bottom-of-sidebar account block: guest → Google CTA, signed-in → profile.
-class _SidebarAccount extends StatelessWidget {
-  const _SidebarAccount();
-
-  @override
-  Widget build(BuildContext context) {
-    final AuthProvider auth = context.watch<AuthProvider>();
-
-    if (auth.isSignedIn) {
-      return Row(
-        children: <Widget>[
-          _Avatar(auth: auth),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  auth.displayName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTheme.tileTitle,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  auth.email,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTheme.tileMeta,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 4),
-          Semantics(
-            button: true,
-            label: 'خروج از حساب',
-            child: GestureDetector(
-              onTap: () => context.read<AuthProvider>().signOut(),
-              behavior: HitTestBehavior.opaque,
-              child: const Padding(
-                padding: EdgeInsets.all(4),
-                child: Icon(Icons.logout_rounded, size: 18, color: AppTheme.textSecondary),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Guest → Google sign-in CTA.
-    // Web: GoogleSignIn.signIn() is deprecated on web (no idToken,
-    // People-API fallback) — use the plugin's official GIS button instead.
-    // Android keeps the existing custom button + signIn().
-    if (kIsWeb) {
-      return Center(child: renderGoogleSignInButton());
-    }
-    return GestureDetector(
-      onTap: auth.isLoading
-          ? null
-          : () => context.read<AuthProvider>().signInWithGoogle(),
-      child: Container(
-        height: 48,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppTheme.glassFill,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppTheme.chipBorder, width: 0.8),
-        ),
-        child: auth.isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2.2, color: AppTheme.cyan),
-              )
-            : const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Icon(Icons.login_rounded, size: 18, color: AppTheme.cyan),
-                  SizedBox(width: 8),
-                  Text(
-                    'ورود با گوگل',
-                    style: TextStyle(
-                      fontFamily: AppTheme.fontFa,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-}
-
-class _Avatar extends StatelessWidget {
-  const _Avatar({required this.auth});
-
-  final AuthProvider auth;
-
-  @override
-  Widget build(BuildContext context) {
-    if (auth.photoUrl != null) {
-      return Container(
-        width: 40,
-        height: 40,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: AppTheme.neon,
-          boxShadow: AppTheme.ringGlow,
-        ),
-        child: ClipOval(
-          child: Image.network(
-            auth.photoUrl!,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _initial(),
-          ),
-        ),
-      );
-    }
-    return _initial();
-  }
-
-  Widget _initial() {
-    return Container(
-      width: 40,
-      height: 40,
-      alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: AppTheme.neon,
-        boxShadow: AppTheme.ringGlow,
-      ),
-      child: Text(
-        auth.photoInitial,
-        style: const TextStyle(
-          fontFamily: AppTheme.fontFa,
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
         ),
       ),
     );

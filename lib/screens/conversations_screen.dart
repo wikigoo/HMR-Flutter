@@ -1,19 +1,16 @@
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../database/chat_database.dart';
 import '../models/conversation_model.dart';
-import '../providers/auth_provider.dart';
 import '../utils/jalali.dart';
 import '../providers/chat_provider.dart';
 import '../providers/conversations_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/confirm_dialog.dart';
-import '../widgets/google_signin_web_button.dart';
 import '../widgets/hmr_avatar.dart';
 import '../widgets/hmr_background.dart';
 import 'chat_screen.dart';
@@ -32,17 +29,12 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final AuthProvider auth = context.read<AuthProvider>();
-      if (!auth.initialized) auth.init();
       context.read<ConversationsProvider>().loadConversations();
     });
   }
 
   Future<void> _openConversation(ConversationModel conv) async {
     final ConversationsProvider convs = context.read<ConversationsProvider>();
-    // Phase 4: capture the signed-in user's Google `sub` (null for guests) to
-    // use as the Flowise sessionId for cross-device chat continuity.
-    final String? uid = context.read<AuthProvider>().uid;
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
@@ -50,7 +42,6 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
           create: (_) {
             final ChatProvider p = ChatProvider(
               conversationId: conv.id,
-              userId: uid,
               onUpdate: (String title, String last) => convs.updateConversation(
                 conv.id,
                 title: title,
@@ -405,7 +396,6 @@ class _Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthProvider auth = context.watch<AuthProvider>();
     return Drawer(
       width: 304,
       backgroundColor: AppTheme.sidebarFill,
@@ -430,8 +420,6 @@ class _Sidebar extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 22),
-              _AccountCard(auth: auth),
               const SizedBox(height: 22),
               const Padding(
                 padding: EdgeInsets.only(right: 4, bottom: 6),
@@ -468,53 +456,6 @@ class _Sidebar extends StatelessWidget {
                 },
               ),
               const Spacer(),
-              if (auth.isSignedIn) ...<Widget>[
-                _DrawerTile(
-                  icon: Icons.logout_rounded,
-                  label: 'خروج از حساب',
-                  danger: false,
-                  onTap: () {
-                    context.read<AuthProvider>().signOut();
-                    Navigator.pop(context);
-                  },
-                ),
-                _DrawerTile(
-                  icon: Icons.delete_forever_rounded,
-                  label: 'حذف حساب',
-                  danger: true,
-                  onTap: () async {
-                    final ConversationsProvider convs =
-                        context.read<ConversationsProvider>();
-                    final AuthProvider authP = context.read<AuthProvider>();
-                    final NavigatorState nav = Navigator.of(context);
-                    final bool? ok = await showDialog<bool>(
-                      context: context,
-                      builder: (_) => const ConfirmDialog(
-                        title: 'حذف حساب',
-                        body:
-                            'تمام گفت‌وگوها از دستگاه پاک می‌شوند و از حساب گوگل خارج می‌شوید.\n\nبرای حذف داده‌های سرور، یک ایمیل درخواست برای ما ارسال خواهد شد.',
-                        confirmLabel: 'حذف حساب',
-                      ),
-                    );
-                    if (!(ok ?? false)) return;
-                    await convs.deleteAllConversations();
-                    await authP.signOut();
-                    nav.pop();
-                    await launchUrl(
-                      Uri(
-                        scheme: 'mailto',
-                        path: 'support@hmrbot.com',
-                        queryParameters: <String, String>{
-                          'subject': 'Account Deletion Request — HMR',
-                          'body':
-                              'Please delete my HMR account and all associated data.',
-                        },
-                      ),
-                      mode: LaunchMode.externalApplication,
-                    );
-                  },
-                ),
-              ],
               const SizedBox(height: 6),
               const Center(
                 child: Text(
@@ -528,178 +469,6 @@ class _Sidebar extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Guest → Google CTA; signed-in → profile card.
-class _AccountCard extends StatelessWidget {
-  const _AccountCard({required this.auth});
-
-  final AuthProvider auth;
-
-  @override
-  Widget build(BuildContext context) {
-    if (auth.isGuest) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: <Color>[Color(0x332F6BFF), Color(0x1A00D4FF)],
-          ),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppTheme.chipBorder, width: 0.8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            const Text(
-              'حساب خود را بساز',
-              textAlign: TextAlign.right,
-              style: AppTheme.tileTitle,
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'گفت‌وگوهای شما به‌صورت امن روی همین دستگاه ذخیره می‌شوند.',
-              textAlign: TextAlign.right,
-              style: AppTheme.tilePreview,
-            ),
-            const SizedBox(height: 14),
-            // Web: GoogleSignIn.signIn() is deprecated on web (no idToken,
-            // People-API fallback) — use the plugin's official GIS button
-            // instead. Android keeps the existing custom button + signIn().
-            if (kIsWeb)
-              Center(child: renderGoogleSignInButton())
-            else
-              GestureDetector(
-                onTap: auth.isLoading
-                    ? null
-                    : () async {
-                        final bool ok = await context.read<AuthProvider>().signInWithGoogle();
-                        if (ok && context.mounted) Navigator.pop(context);
-                      },
-                child: Container(
-                  height: 46,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.neon,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: AppTheme.ringGlow,
-                  ),
-                  child: auth.isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-                        )
-                      : const Text(
-                          'ورود با گوگل',
-                          style: TextStyle(
-                            fontFamily: AppTheme.fontFa,
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                ),
-              ),
-            if (auth.error != null) ...<Widget>[
-              const SizedBox(height: 8),
-              Text(
-                auth.error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: AppTheme.fontFa,
-                  fontSize: 12,
-                  color: Color(0xFFFF8597),
-                ),
-              ),
-            ],
-          ],
-        ),
-      );
-    }
-
-    // Signed-in: profile row
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppTheme.glassFill,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.glassBorder, width: 0.8),
-      ),
-      child: Row(
-        children: <Widget>[
-          _avatarWidget(auth),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                Text(
-                  auth.displayName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTheme.tileTitle,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  auth.email,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTheme.tileMeta,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _avatarWidget(AuthProvider auth) {
-    if (auth.photoUrl != null) {
-      return Container(
-        width: 46,
-        height: 46,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: AppTheme.neon,
-          boxShadow: AppTheme.ringGlow,
-        ),
-        child: ClipOval(
-          child: Image.network(
-            auth.photoUrl!,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _initialAvatar(auth),
-          ),
-        ),
-      );
-    }
-    return _initialAvatar(auth);
-  }
-
-  Widget _initialAvatar(AuthProvider auth) {
-    return Container(
-      width: 46,
-      height: 46,
-      alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: AppTheme.neon,
-        boxShadow: AppTheme.ringGlow,
-      ),
-      child: Text(
-        auth.photoInitial,
-        style: const TextStyle(
-          fontFamily: AppTheme.fontFa,
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
         ),
       ),
     );

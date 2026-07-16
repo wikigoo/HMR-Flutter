@@ -12,7 +12,7 @@ Instructions for Claude Code and any AI coding assistant working in this reposit
 |---|---|
 | Frontend | Flutter 3.44.2, Android-first |
 | AI backend | Flowise on a self-hosted VPS (`https://srv.hmrbot.com`) |
-| Auth | Google Sign-In via **Google Identity Services** (`google_sign_in`) — Google Cloud project `ir-hmrbot-app`. **No Firebase Auth** — this repo has no `firebase_auth`/`firebase_core` dependency. |
+| Auth | None. No accounts, no sign-in of any kind — every user is a guest. |
 | Storage | SQLite (messages) + SharedPreferences (conversation index) — 100 % on-device, no sync |
 | Locale | Persian (Farsi), RTL, Jalali (Shamsi) calendar |
 
@@ -26,8 +26,8 @@ These rules must **never** be broken regardless of the task at hand.
 2. **Branding:** Dark navy/cyan color palette defined in `AppTheme`. Do not alter brand colors or the HMR orb widget.
 3. **Five pillars:** Phone · Laptop · Tablet · Earphones · Accessories — do not remove, rename, or reorder them.
 4. **Price disclaimer:** The app must never present a specific price as definitive. Users must always be prompted to verify prices at the point of sale. The `PriceDisclaimer` widget implements this contract.
-5. **Honesty boundary:** The AI assistant must never claim capabilities that do not exist. **Partial sync only:** since Phase 4 (2026-07-15), a *signed-in* user's Flowise conversation **memory** follows them across web and mobile (the Flowise `sessionId` is the Google `sub`). But the **conversation list is still 100% on-device** — there is **no list/history sync backend**. So do **not** claim full "cross-device sync" in UI copy; at most, "your signed-in chat continues across your devices."
-6. **Flowise endpoints:** Never change `_chatflowId`, `_baseUrl`, or the `sessionId` **field/signature** in `api_service.dart`. (Phase 4 changed only the *value* the caller passes — `ChatProvider` sends `userId ?? conversationId` — `api_service.dart` itself is untouched.) Any modification to the API layer requires a live VPS reverse proxy to be deployed first (see Security section).
+5. **Honesty boundary:** The AI assistant must never claim capabilities that do not exist. There is no account system and no cross-device sync of any kind — every conversation is 100% on-device, tied to a local `conversationId`. Do not claim sync or "your chat continues across devices" in UI copy.
+6. **Flowise endpoints:** Never change `_chatflowId`, `_baseUrl`, or the `sessionId` **field/signature** in `api_service.dart`. Any modification to the API layer requires a live VPS reverse proxy to be deployed first (see Security section).
 
 ---
 
@@ -42,7 +42,6 @@ lib/
 │                                    colors (Color(0xAARRGGBB) — no withOpacity),
 │                                    text styles, gradients, Markdown stylesheet
 ├── providers/                       ChangeNotifier state — Provider package
-│   ├── auth_provider.dart           Google Sign-In state machine
 │   ├── chat_provider.dart           Per-session messages, API dispatch, retry logic
 │   └── conversations_provider.dart  Conversation index — SharedPreferences JSON array;
 │                                    message CRUD delegated to ChatDatabase
@@ -209,21 +208,6 @@ After every code change, before committing:
 |---|---|---|
 | 1 | Rotate signing keystore; purge old keystore from git history; enroll Play App Signing | Needs `keytool` + Play Console + force-push to history |
 
-> **Done 2026-07-14 — no longer pending:** registering the release SHA-1 in Google Cloud. Verified:
-> the release keystore's SHA-1 (`2D:5B:3E:9A:…`) matches the Android OAuth client `…og77…` in project
-> `ir-hmrbot-app`, and Android sign-in works. (Android OAuth clients take a SHA-1 only; a SHA-256 will
-> be needed for Play App Signing when item 1 is done.)
-
-## Auth notes (web)
-
-Web sign-in uses the GIS **`renderButton`** widget, not `GoogleSignIn.signIn()` — the plugin
-deprecated `signIn()` on the web and it can only synthesize a profile through the **People API**.
-Session restore across page reloads depends on `signInSilently()`, which **must stay enabled on web**
-(`AuthProvider.init()`). It defaults to `suppressErrors: true`, so a rejected FedCM/One-Tap prompt
-resolves to `null` rather than throwing — it cannot loop. Skipping it on web is what previously broke
-both session persistence *and* sign-in itself (by forcing the People API path while that API was
-disabled in the Cloud project).
-
 ---
 
 ## Key Decisions and Rationale
@@ -235,7 +219,7 @@ disabled in the Cloud project).
 | `allowBackup = false` | Conversations are personal; Android Auto Backup must not exfiltrate them. |
 | Aliyun mirrors in `settings.gradle.kts` | The development team is in Iran. `dl.google.com` and Maven Central are not reliably reachable. |
 | Jalali (Shamsi) calendar for all dates | The product is built for the Iranian market; Gregorian timestamps would confuse users. |
-| Conversation **list** is 100% on-device (no list-sync backend) | No list-sync infrastructure exists; the index/messages stay in SharedPreferences + SQLite. Phase 4 added server-side **memory** continuity only (Flowise `sessionId = sub` for signed-in users) — not list sync. Since `sub` is one session per user, a signed-in user's separate conversations share one Flowise memory (context can carry across them); use `"${sub}:${conversationId}"` if per-conversation isolation is ever needed (at the cost of cross-device continuity). UI copy must not claim full cross-device sync. |
+| No auth, no accounts | Google Sign-In was removed entirely (product decision) — every user is a guest, `sessionId` is always the local `conversationId`. Everything stays 100% on-device; there is no sync of any kind. |
 | Error messages not persisted to SQLite | Error bubbles are ephemeral UI state. Persisting them would require a schema migration and add no user value; reloading a conversation shows clean history. |
 | `BackdropFilter` only on static surfaces | Per-bubble blur tanks frame rate on mid-range Android. Semi-transparent solid fills achieve the glass aesthetic at a fraction of the GPU cost. |
 | UUID v4 for all IDs | Collision-free across devices without a server; replaces previous millisecond-timestamp IDs which could collide during rapid creation. |

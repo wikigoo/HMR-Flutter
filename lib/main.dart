@@ -7,7 +7,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'providers/auth_provider.dart';
 import 'providers/conversations_provider.dart';
 import 'screens/home_shell.dart';
 import 'theme/app_theme.dart';
@@ -54,7 +53,6 @@ class HmrApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: <ChangeNotifierProvider<dynamic>>[
-        ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
         ChangeNotifierProvider<ConversationsProvider>(
             create: (_) => ConversationsProvider()),
       ],
@@ -83,9 +81,8 @@ class HmrApp extends StatelessWidget {
             ),
           );
         },
-        // Launch directly — no mandatory auth gate. HomeShell picks the
-        // mobile (list + drawer) or desktop (persistent sidebar) layout by
-        // width; silent sign-in + history load happen on first frame.
+        // HomeShell picks the mobile (list + drawer) or desktop (persistent
+        // sidebar) layout by width; history load happens on first frame.
         home: const HomeShell(),
       ),
     );
