@@ -22,11 +22,6 @@ dependencies:
   sqflite_common_ffi_web: ^0.4.5
   path: ^1.9.0
   google_sign_in: ^6.2.1
-  # Direct dependency only so lib/widgets/google_signin_web_button_web.dart
-  # (web-only, behind a conditional export) can import web_only.dart for the
-  # GIS renderButton widget. Already resolved transitively via google_sign_in;
-  # version pinned to match what was already in pubspec.lock.
-  google_sign_in_web: ^0.12.4
   url_launcher: ^6.3.0
   uuid: ^4.5.1
   connectivity_plus: ^6.1.4

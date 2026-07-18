@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -13,7 +12,6 @@ import '../providers/chat_provider.dart';
 import '../providers/conversations_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/confirm_dialog.dart';
-import '../widgets/google_signin_web_button.dart';
 import '../widgets/hmr_avatar.dart';
 import '../widgets/hmr_background.dart';
 import 'chat_screen.dart';
@@ -569,44 +567,38 @@ class _AccountCard extends StatelessWidget {
               style: AppTheme.tilePreview,
             ),
             const SizedBox(height: 14),
-            // Web: GoogleSignIn.signIn() is deprecated on web (no idToken,
-            // People-API fallback) — use the plugin's official GIS button
-            // instead. Android keeps the existing custom button + signIn().
-            if (kIsWeb)
-              Center(child: renderGoogleSignInButton())
-            else
-              GestureDetector(
-                onTap: auth.isLoading
-                    ? null
-                    : () async {
-                        final bool ok = await context.read<AuthProvider>().signInWithGoogle();
-                        if (ok && context.mounted) Navigator.pop(context);
-                      },
-                child: Container(
-                  height: 46,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.neon,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: AppTheme.ringGlow,
-                  ),
-                  child: auth.isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-                        )
-                      : const Text(
-                          'ورود با گوگل',
-                          style: TextStyle(
-                            fontFamily: AppTheme.fontFa,
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
+            GestureDetector(
+              onTap: auth.isLoading
+                  ? null
+                  : () async {
+                      final bool ok = await context.read<AuthProvider>().signInWithGoogle();
+                      if (ok && context.mounted) Navigator.pop(context);
+                    },
+              child: Container(
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.neon,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: AppTheme.ringGlow,
                 ),
+                child: auth.isLoading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                      )
+                    : const Text(
+                        'ورود با گوگل',
+                        style: TextStyle(
+                          fontFamily: AppTheme.fontFa,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
+            ),
             if (auth.error != null) ...<Widget>[
               const SizedBox(height: 8),
               Text(
