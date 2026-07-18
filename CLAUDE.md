@@ -214,15 +214,13 @@ After every code change, before committing:
 > `ir-hmrbot-app`, and Android sign-in works. (Android OAuth clients take a SHA-1 only; a SHA-256 will
 > be needed for Play App Signing when item 1 is done.)
 
-## Auth notes (web)
+## Auth notes
 
-Web sign-in uses the GIS **`renderButton`** widget, not `GoogleSignIn.signIn()` — the plugin
-deprecated `signIn()` on the web and it can only synthesize a profile through the **People API**.
-Session restore across page reloads depends on `signInSilently()`, which **must stay enabled on web**
-(`AuthProvider.init()`). It defaults to `suppressErrors: true`, so a rejected FedCM/One-Tap prompt
-resolves to `null` rather than throwing — it cannot loop. Skipping it on web is what previously broke
-both session persistence *and* sign-in itself (by forcing the People API path while that API was
-disabled in the Cloud project).
+Auth is Android-only. `hmrbot.com/ai` (the former Flutter web export) was decommissioned in favor of
+a native Astro+React chat UI in `HMR-Astro`; the `build-web.yml` CI workflow and the `kIsWeb` web
+sign-in path (GIS `renderButton`, first-party session cookie via `/api/auth/session|login|logout`)
+were removed from this repo accordingly. `AuthProvider` now has a single identity source (`_user`,
+from `google_sign_in`'s own `signIn()`/`signInSilently()`) — no second, cookie-restored profile.
 
 ---
 
