@@ -9,6 +9,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/conversations_provider.dart';
+import 'repositories/chat_repository.dart';
 import 'screens/home_shell.dart';
 import 'theme/app_theme.dart';
 
@@ -53,10 +54,18 @@ class HmrApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: <ChangeNotifierProvider<dynamic>>[
+      providers: [
+        // App-scoped data-access seam. Shared by ChatProvider and
+        // ConversationsProvider; owns the pooled HTTP client, closed on dispose.
+        Provider<ChatRepository>(
+          create: (_) => ChatRepository(),
+          dispose: (_, ChatRepository repo) => repo.dispose(),
+        ),
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
         ChangeNotifierProvider<ConversationsProvider>(
-            create: (_) => ConversationsProvider()),
+          create: (BuildContext context) =>
+              ConversationsProvider(context.read<ChatRepository>()),
+        ),
       ],
       child: MaterialApp(
         title: 'همر | HMR',

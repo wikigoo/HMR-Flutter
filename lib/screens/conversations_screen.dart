@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../database/chat_database.dart';
 import '../models/conversation_model.dart';
 import '../providers/auth_provider.dart';
 import '../utils/jalali.dart';
 import '../providers/chat_provider.dart';
 import '../providers/conversations_provider.dart';
+import '../repositories/chat_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/hmr_avatar.dart';
@@ -38,6 +38,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
 
   Future<void> _openConversation(ConversationModel conv) async {
     final ConversationsProvider convs = context.read<ConversationsProvider>();
+    final ChatRepository repo = context.read<ChatRepository>();
     // Phase 4: capture the signed-in user's Google `sub` (null for guests) to
     // use as the Flowise sessionId for cross-device chat continuity.
     final String? uid = context.read<AuthProvider>().uid;
@@ -49,6 +50,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
             final ChatProvider p = ChatProvider(
               conversationId: conv.id,
               userId: uid,
+              repository: repo,
               onUpdate: (String title, String last) => convs.updateConversation(
                 conv.id,
                 title: title,
@@ -63,8 +65,9 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
       ),
     );
     if (!mounted) return;
-    final bool hasMessages =
-        (await ChatDatabase.instance.fetchMessages(conv.id)).isNotEmpty;
+    // Ghost-conversation cleanup goes through the repository, not the DB
+    // singleton — the UI no longer talks to persistence directly.
+    final bool hasMessages = await repo.hasMessages(conv.id);
     if (!mounted) return;
     if (hasMessages) {
       await convs.loadConversations();
