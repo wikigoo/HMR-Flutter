@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/conversation_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
@@ -66,9 +67,9 @@ class _HomeShellState extends State<HomeShell> {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (_) => const ConfirmDialog(
-        title: 'حذف گفت‌وگو',
-        body: 'این گفت‌وگو برای همیشه حذف می‌شود.',
-        confirmLabel: 'حذف',
+        title: AppStrings.deleteConversationTitle,
+        body: AppStrings.deleteConversationBody,
+        confirmLabel: AppStrings.delete,
       ),
     );
     if (!(ok ?? false) || !mounted) return;
@@ -195,14 +196,14 @@ class _DesktopSidebar extends StatelessWidget {
                     children: <Widget>[
                       Text('HMR', style: AppTheme.appTitle),
                       SizedBox(height: 2),
-                      Text('مشاور هوشمند موبایل', style: AppTheme.subtitle),
+                      Text(AppStrings.brandSubtitle, style: AppTheme.subtitle),
                     ],
                   ),
                 ),
                 _GlassHamburger(
                   onTap: onToggle,
                   icon: Icons.menu_open_rounded,
-                  label: 'بستن نوار کناری',
+                  label: AppStrings.closeSidebar,
                 ),
               ],
             ),
@@ -215,7 +216,7 @@ class _DesktopSidebar extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: Padding(
                 padding: EdgeInsets.only(right: 4, bottom: 8),
-                child: Text('تاریخچه گفتگو', style: AppTheme.sectionLabel),
+                child: Text(AppStrings.chatHistory, style: AppTheme.sectionLabel),
               ),
             ),
             Expanded(
@@ -263,7 +264,7 @@ class _NewChatButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'گفتگوی جدید',
+      label: AppStrings.newChat,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -280,7 +281,7 @@ class _NewChatButton extends StatelessWidget {
               Icon(Icons.add_rounded, size: 20, color: Colors.white),
               SizedBox(width: 8),
               Text(
-                'گفتگوی جدید',
+                AppStrings.newChat,
                 style: TextStyle(
                   fontFamily: AppTheme.fontFa,
                   fontSize: 14.5,
@@ -327,7 +328,7 @@ class _SearchField extends StatelessWidget {
               decoration: const InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
-                hintText: 'جست‌وجو در گفت‌وگوها',
+                hintText: AppStrings.searchHint,
                 hintTextDirection: TextDirection.rtl,
                 hintStyle: TextStyle(
                   fontFamily: AppTheme.fontFa,
@@ -397,7 +398,7 @@ class _HistoryTile extends StatelessWidget {
             const SizedBox(width: 6),
             Semantics(
               button: true,
-              label: 'حذف گفت‌وگو',
+              label: AppStrings.deleteConversationTitle,
               child: GestureDetector(
                 onTap: onDelete,
                 behavior: HitTestBehavior.opaque,
@@ -428,7 +429,7 @@ class _EmptyHistory extends StatelessWidget {
       child: Align(
         alignment: Alignment.topRight,
         child: Text(
-          'هنوز گفتگویی نداری.\nبرای شروع، سؤالت را بپرس.',
+          AppStrings.emptyHistorySidebar,
           textAlign: TextAlign.right,
           style: AppTheme.tilePreview,
         ),
@@ -474,7 +475,7 @@ class _SidebarAccount extends StatelessWidget {
           const SizedBox(width: 4),
           Semantics(
             button: true,
-            label: 'خروج از حساب',
+            label: AppStrings.signOut,
             child: GestureDetector(
               onTap: () => context.read<AuthProvider>().signOut(),
               behavior: HitTestBehavior.opaque,
@@ -513,7 +514,7 @@ class _SidebarAccount extends StatelessWidget {
                   Icon(Icons.login_rounded, size: 18, color: AppTheme.cyan),
                   SizedBox(width: 8),
                   Text(
-                    'ورود با گوگل',
+                    AppStrings.signInWithGoogle,
                     style: TextStyle(
                       fontFamily: AppTheme.fontFa,
                       fontSize: 14,
@@ -585,7 +586,7 @@ class _GlassHamburger extends StatelessWidget {
   const _GlassHamburger({
     required this.onTap,
     this.icon = Icons.menu_rounded,
-    this.label = 'نوار کناری',
+    this.label = AppStrings.sidebar,
   });
 
   final VoidCallback onTap;

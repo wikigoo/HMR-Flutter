@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/conversation_model.dart';
 import '../repositories/chat_repository.dart';
 
@@ -47,7 +48,7 @@ class ConversationsProvider extends ChangeNotifier {
     final DateTime now = DateTime.now();
     final ConversationModel conv = ConversationModel(
       id: _uuid.v4(),
-      title: 'گفتگوی جدید',
+      title: AppStrings.newChat,
       createdAt: now,
       updatedAt: now,
     );

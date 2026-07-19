@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../theme/app_theme.dart';
 
 /// Reusable dark-glass confirmation dialog.
@@ -66,7 +67,7 @@ class ConfirmDialog extends StatelessWidget {
                       child: TextButton(
                         onPressed: () => Navigator.pop(context, false),
                         child: const Text(
-                          'انصراف',
+                          AppStrings.cancel,
                           style: TextStyle(
                             fontFamily: AppTheme.fontFa,
                             color: AppTheme.textSecondary,
