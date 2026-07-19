@@ -5,6 +5,8 @@ import 'package:flutter/services.dart' show PlatformException;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../l10n/app_strings.dart';
+
 class AuthProvider extends ChangeNotifier {
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
@@ -31,13 +33,13 @@ class AuthProvider extends ChangeNotifier {
 
   String get userId => uid ?? 'guest';
 
-  String get displayName => _user?.displayName ?? 'کاربر';
+  String get displayName => _user?.displayName ?? AppStrings.defaultUserName;
   String get email => _user?.email ?? '';
   String? get photoUrl => _user?.photoUrl;
 
   String get photoInitial {
     final String name = displayName.trim();
-    return name.isEmpty ? '؟' : name[0];
+    return name.isEmpty ? AppStrings.unknownInitial : name[0];
   }
 
   Future<void> init() async {
@@ -80,7 +82,7 @@ class AuthProvider extends ChangeNotifier {
       // `signIn()` already converts a user-cancelled flow into a `null`
       // result (it catches PlatformException(kSignInCanceledError)
       // internally), so this branch is the correct place for that message.
-      _error = account == null ? 'ورود لغو شد.' : null;
+      _error = account == null ? AppStrings.signInCancelled : null;
       _isLoading = false;
       notifyListeners();
       return account != null;
@@ -89,7 +91,7 @@ class AuthProvider extends ChangeNotifier {
       // Do not blame "the internet" for every failure — that masked the
       // real cause (a disabled People API) for a long time. Show a truthful
       // generic message and keep the real exception visible for debugging.
-      _error = 'ورود با گوگل ناموفق بود. لطفاً دوباره تلاش کنید.';
+      _error = AppStrings.signInFailed;
       final String code = e is PlatformException ? e.code : e.runtimeType.toString();
       debugPrint('AuthProvider.signInWithGoogle failed ($code): $e');
       unawaited(Sentry.captureException(e, stackTrace: st));

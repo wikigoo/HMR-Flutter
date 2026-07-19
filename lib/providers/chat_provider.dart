@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/message_model.dart';
 import '../repositories/chat_repository.dart';
 // ApiException (thrown by the repository's network call) is caught below.
@@ -69,9 +70,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty || _isSending) return;
     if (text.trim().length > _maxInputLength) {
-      _messages.add(MessageModel.aiMessage(
-        'پیام شما بیش از $_maxInputLength کاراکتر است. لطفاً آن را کوتاه‌تر کنید.',
-      ));
+      _messages.add(MessageModel.aiMessage(AppStrings.tooLong(_maxInputLength)));
       _safeNotify();
       return;
     }
@@ -139,7 +138,7 @@ class ChatProvider extends ChangeNotifier {
     } catch (_) {
       _lastFailedText = text;
       _messages.add(MessageModel.aiMessage(
-        'خطای غیرمنتظره‌ای رخ داد. لطفاً دوباره تلاش کنید.',
+        AppStrings.unexpectedError,
         isError: true,
       ));
     } finally {

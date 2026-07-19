@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/message_model.dart';
 import '../theme/app_theme.dart';
 
@@ -128,7 +129,7 @@ class ChatBubble extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: const Text(
-              'تلاش مجدد',
+              AppStrings.retry,
               style: TextStyle(
                 fontFamily: AppTheme.fontFa,
                 fontSize: 13,
@@ -249,7 +250,7 @@ class _AiActionsState extends State<_AiActions> {
               child: const Padding(
                 padding: EdgeInsets.only(left: 4),
                 child: Text(
-                  'کپی شد',
+                  AppStrings.copiedInline,
                   style: TextStyle(
                     fontFamily: AppTheme.fontFa,
                     fontSize: 10,
@@ -260,14 +261,14 @@ class _AiActionsState extends State<_AiActions> {
             ),
             _iconButton(
               icon: Icons.copy_rounded,
-              label: 'کپی',
+              label: AppStrings.copy,
               onTap: _handleCopy,
             ),
             if (widget.onReport != null) ...<Widget>[
               const SizedBox(width: 2),
               _iconButton(
                 icon: Icons.outlined_flag,
-                label: 'گزارش پاسخ نامناسب',
+                label: AppStrings.reportLabel,
                 onTap: widget.onReport,
               ),
             ],

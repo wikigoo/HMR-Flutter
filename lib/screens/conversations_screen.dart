@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/conversation_model.dart';
 import '../providers/auth_provider.dart';
 import '../utils/jalali.dart';
@@ -129,7 +130,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                 padding: EdgeInsets.only(bottom: 4, top: 4, right: 4),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Text('گفت‌وگوهای اخیر', style: AppTheme.sectionLabel),
+                  child: Text(AppStrings.recentConversations, style: AppTheme.sectionLabel),
                 ),
               );
             }
@@ -141,9 +142,9 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                 final bool? ok = await showDialog<bool>(
                   context: context,
                   builder: (_) => const ConfirmDialog(
-                    title: 'حذف گفت‌وگو',
-                    body: 'این گفت‌وگو برای همیشه حذف می‌شود.',
-                    confirmLabel: 'حذف',
+                    title: AppStrings.deleteConversationTitle,
+                    body: AppStrings.deleteConversationBody,
+                    confirmLabel: AppStrings.delete,
                   ),
                 );
                 if ((ok ?? false) && context.mounted) {
@@ -182,7 +183,7 @@ class _TopBar extends StatelessWidget {
           const SizedBox(width: 12),
           const Expanded(
             child: Text(
-              'گفت‌وگوها',
+              AppStrings.conversationsTitle,
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontFamily: AppTheme.fontFa,
@@ -269,7 +270,7 @@ class _ConversationTile extends StatelessWidget {
                     children: <Widget>[
                       Semantics(
                         button: true,
-                        label: 'حذف گفت‌وگو',
+                        label: AppStrings.deleteConversationTitle,
                         child: GestureDetector(
                           onTap: onDelete,
                           child: const Icon(
@@ -295,9 +296,9 @@ class _ConversationTile extends StatelessWidget {
   String _dateLabel(DateTime dt) {
     final DateTime now = DateTime.now();
     final Duration diff = now.difference(dt);
-    if (diff.inHours < 24 && now.day == dt.day) return 'امروز';
-    if (diff.inDays <= 1) return 'دیروز';
-    if (diff.inDays < 7) return '${diff.inDays} روز پیش';
+    if (diff.inHours < 24 && now.day == dt.day) return AppStrings.today;
+    if (diff.inDays <= 1) return AppStrings.yesterday;
+    if (diff.inDays < 7) return AppStrings.daysAgo(diff.inDays);
     return jalaliLabel(dt);
   }
 }
@@ -314,7 +315,7 @@ class _NewChatButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'گفت‌وگوی جدید',
+      label: AppStrings.newConversation,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -332,7 +333,7 @@ class _NewChatButton extends StatelessWidget {
               Icon(Icons.add_rounded, size: 22, color: Colors.white),
               SizedBox(width: 8),
               Text(
-                'گفت‌وگوی جدید',
+                AppStrings.newConversation,
                 style: TextStyle(
                   fontFamily: AppTheme.fontFa,
                   fontSize: 14.5,
@@ -363,7 +364,7 @@ class _EmptyConversations extends StatelessWidget {
           const HmrAvatar(size: 72),
           const SizedBox(height: 20),
           const Text(
-            'هنوز گفت‌وگویی ندارید',
+            AppStrings.noConversationsTitle,
             style: TextStyle(
               fontFamily: AppTheme.fontFa,
               fontSize: 16,
@@ -373,14 +374,14 @@ class _EmptyConversations extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'یک گفت‌وگوی جدید شروع کنید',
+            AppStrings.noConversationsBody,
             style: AppTheme.tilePreview,
           ),
           const SizedBox(height: 28),
           TextButton(
             onPressed: onNew,
             child: const Text(
-              '+ گفت‌وگوی جدید',
+              AppStrings.newConversationPlus,
               style: TextStyle(
                 fontFamily: AppTheme.fontFa,
                 fontSize: 14,
@@ -426,7 +427,7 @@ class _Sidebar extends StatelessWidget {
                     children: <Widget>[
                       Text('HMR', style: AppTheme.appTitle),
                       SizedBox(height: 2),
-                      Text('مشاور هوشمند موبایل', style: AppTheme.subtitle),
+                      Text(AppStrings.brandSubtitle, style: AppTheme.subtitle),
                     ],
                   ),
                 ],
@@ -438,12 +439,12 @@ class _Sidebar extends StatelessWidget {
                 padding: EdgeInsets.only(right: 4, bottom: 6),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Text('بیشتر', style: AppTheme.sectionLabel),
+                  child: Text(AppStrings.moreSection, style: AppTheme.sectionLabel),
                 ),
               ),
               _DrawerTile(
                 icon: Icons.download_rounded,
-                label: 'دانلود اپلیکیشن',
+                label: AppStrings.downloadApp,
                 onTap: () async {
                   Navigator.pop(context);
                   await launchUrl(
@@ -454,12 +455,12 @@ class _Sidebar extends StatelessWidget {
               ),
               _DrawerTile(
                 icon: Icons.info_outline_rounded,
-                label: 'درباره ما',
+                label: AppStrings.about,
                 onTap: () => Navigator.pop(context),
               ),
               _DrawerTile(
                 icon: Icons.shield_outlined,
-                label: 'حریم خصوصی',
+                label: AppStrings.privacy,
                 onTap: () async {
                   Navigator.pop(context);
                   await launchUrl(
@@ -472,7 +473,7 @@ class _Sidebar extends StatelessWidget {
               if (auth.isSignedIn) ...<Widget>[
                 _DrawerTile(
                   icon: Icons.logout_rounded,
-                  label: 'خروج از حساب',
+                  label: AppStrings.signOut,
                   danger: false,
                   onTap: () {
                     context.read<AuthProvider>().signOut();
@@ -481,7 +482,7 @@ class _Sidebar extends StatelessWidget {
                 ),
                 _DrawerTile(
                   icon: Icons.delete_forever_rounded,
-                  label: 'حذف حساب',
+                  label: AppStrings.deleteAccount,
                   danger: true,
                   onTap: () async {
                     final ConversationsProvider convs =
@@ -491,10 +492,9 @@ class _Sidebar extends StatelessWidget {
                     final bool? ok = await showDialog<bool>(
                       context: context,
                       builder: (_) => const ConfirmDialog(
-                        title: 'حذف حساب',
-                        body:
-                            'تمام گفت‌وگوها از دستگاه پاک می‌شوند و از حساب گوگل خارج می‌شوید.\n\nبرای حذف داده‌های سرور، یک ایمیل درخواست برای ما ارسال خواهد شد.',
-                        confirmLabel: 'حذف حساب',
+                        title: AppStrings.deleteAccount,
+                        body: AppStrings.deleteAccountBody,
+                        confirmLabel: AppStrings.deleteAccount,
                       ),
                     );
                     if (!(ok ?? false)) return;
@@ -519,7 +519,7 @@ class _Sidebar extends StatelessWidget {
               const SizedBox(height: 6),
               const Center(
                 child: Text(
-                  'HMR · نسخهٔ ۱.۰',
+                  AppStrings.appVersionLabel,
                   style: TextStyle(
                     fontFamily: AppTheme.fontFa,
                     fontSize: 10.5,
@@ -559,13 +559,13 @@ class _AccountCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             const Text(
-              'حساب خود را بساز',
+              AppStrings.createAccountTitle,
               textAlign: TextAlign.right,
               style: AppTheme.tileTitle,
             ),
             const SizedBox(height: 6),
             const Text(
-              'گفت‌وگوهای شما به‌صورت امن روی همین دستگاه ذخیره می‌شوند.',
+              AppStrings.createAccountBody,
               textAlign: TextAlign.right,
               style: AppTheme.tilePreview,
             ),
@@ -592,7 +592,7 @@ class _AccountCard extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
                       )
                     : const Text(
-                        'ورود با گوگل',
+                        AppStrings.signInWithGoogle,
                         style: TextStyle(
                           fontFamily: AppTheme.fontFa,
                           fontSize: 14.5,

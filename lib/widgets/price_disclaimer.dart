@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../theme/app_theme.dart';
 
 /// Sticky glassmorphism banner reminding users to verify prices before buying.
@@ -39,7 +40,7 @@ class PriceDisclaimer extends StatelessWidget {
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
-                    'قیمت‌ها از منابع ایرانی جست‌وجو می‌شوند. صحت قیمت را پیش از خرید تأیید کنید.',
+                    AppStrings.priceDisclaimer,
                     style: compact
                         ? AppTheme.disclaimer.copyWith(fontSize: 10)
                         : AppTheme.disclaimer,
