@@ -27,16 +27,33 @@ class ChatProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isSending = false;
   bool _metaUpdated = false;
+  bool _disposed = false;
   String? _lastFailedText;
 
   List<MessageModel> get messages => List.unmodifiable(_messages);
   bool get isLoading => _isLoading;
 
+  // Async methods below mutate state and notify after `await`. If the user
+  // leaves the chat mid-request the provider is disposed before the await
+  // resolves, and a bare notifyListeners() would throw "used after being
+  // disposed". Route every notification through this guard.
+  void _safeNotify() {
+    if (_disposed) return;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _api.dispose(); // release the pooled HTTP connection
+    super.dispose();
+  }
+
   Future<void> loadHistory() async {
     try {
       _messages = await _db.fetchMessages(conversationId);
       _metaUpdated = _messages.isNotEmpty;
-      notifyListeners();
+      _safeNotify();
     } catch (e) {
       debugPrint('HMR: load error — $e');
     }
@@ -50,7 +67,7 @@ class ChatProvider extends ChangeNotifier {
       _messages.add(MessageModel.aiMessage(
         'پیام شما بیش از $_maxInputLength کاراکتر است. لطفاً آن را کوتاه‌تر کنید.',
       ));
-      notifyListeners();
+      _safeNotify();
       return;
     }
     _isSending = true;
@@ -58,7 +75,7 @@ class ChatProvider extends ChangeNotifier {
     final MessageModel userMsg = MessageModel.userMessage(text.trim());
     _messages.add(userMsg);
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await _db.insertMessage(conversationId, userMsg);
@@ -83,7 +100,7 @@ class ChatProvider extends ChangeNotifier {
     _isSending = true;
     if (_messages.isNotEmpty && _messages.last.isError) _messages.removeLast();
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
     await _callApi(text);
   }
 
@@ -103,7 +120,7 @@ class ChatProvider extends ChangeNotifier {
       } catch (e) {
         debugPrint('HMR: insert ai msg — $e');
       }
-      if (onUpdate != null) {
+      if (!_disposed && onUpdate != null) {
         final String title = _messages.first.text.length > 45
             ? '${_messages.first.text.substring(0, 45)}...'
             : _messages.first.text;
@@ -123,7 +140,7 @@ class ChatProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       _isSending = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -131,7 +148,7 @@ class ChatProvider extends ChangeNotifier {
     _messages.clear();
     _metaUpdated = false;
     _lastFailedText = null;
-    notifyListeners();
+    _safeNotify();
     try {
       await _db.deleteMessages(conversationId);
     } catch (e) {
