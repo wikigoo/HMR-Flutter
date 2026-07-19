@@ -293,20 +293,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   ? () => context.read<ChatProvider>().retryLastMessage()
                   : null,
               onReport: m.isAi && !m.isError ? () => _report(m.text) : null,
-              onThumbsUp: m.isAi && !m.isError
-                  ? () {
-                      ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(_snack('بازخورد شما ثبت شد. متشکریم!'));
-                    }
-                  : null,
-              onThumbsDown: m.isAi && !m.isError
-                  ? () {
-                      ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(_snack('بازخورد شما ثبت شد. متشکریم!'));
-                    }
-                  : null,
             );
           },
         );
@@ -862,7 +848,7 @@ class _HeroLanding extends StatelessWidget {
               const HmrAvatar(size: 92, glow: true),
               const SizedBox(height: 22),
               const Text(
-                'امروز چطور می‌تونم کمکت کنم؟',
+                'امروز چطور می‌تونم کمکتون کنم؟',
                 textAlign: TextAlign.center,
                 textDirection: TextDirection.rtl,
                 style: TextStyle(

@@ -1,14 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/message_model.dart';
 import '../theme/app_theme.dart';
-import 'hmr_avatar.dart';
 
-/// One message row. AI bubbles sit on the leading edge with a glowing
-/// HMR avatar and render Markdown; user bubbles sit on the trailing edge
-/// with a neon-tinted glass fill. Long-press copies the text.
+/// One message row.
+///
+/// AI answers render as **plain prose** — no card, border, or avatar — so a
+/// reply reads like a direct answer rather than a boxed chat message (mirrors
+/// the hmrbot.com/ai design). Below the prose sit a left-aligned timestamp and,
+/// on the opposite side, copy + report actions (no thumbs up/down). User
+/// messages keep the neon-tinted glass bubble on the trailing edge.
 class ChatBubble extends StatelessWidget {
   const ChatBubble({
     super.key,
@@ -16,8 +22,6 @@ class ChatBubble extends StatelessWidget {
     required this.onCopy,
     this.onRetry,
     this.onReport,
-    this.onThumbsUp,
-    this.onThumbsDown,
   });
 
   final MessageModel message;
@@ -29,35 +33,24 @@ class ChatBubble extends StatelessWidget {
   /// can flag hallucinations.
   final VoidCallback? onReport;
 
-  /// Quick feedback — thumbs up on an AI answer.
-  final VoidCallback? onThumbsUp;
-
-  /// Quick feedback — thumbs down on an AI answer.
-  final VoidCallback? onThumbsDown;
-
   @override
   Widget build(BuildContext context) {
     return message.isAi ? _buildAi(context) : _buildUser(context);
   }
 
   Widget _buildAi(BuildContext context) {
-    final double maxWidth = (MediaQuery.of(context).size.width * 0.76)
+    final double maxWidth = (MediaQuery.of(context).size.width * 0.82)
         .clamp(240.0, 560.0)
         .toDouble();
-    // Force LTR so the avatar stays physically on the left of the bubble,
-    // regardless of the app's global RTL direction.
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          const HmrAvatar(size: 30),
-          const SizedBox(width: 8),
-          Flexible(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: _GlassBubble(
+
+    // Error answers keep a red-tinted container for distinction; normal answers
+    // are plain text. Both sit on the leading (RTL → right) edge, no avatar.
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: message.isError
+            ? _GlassBubble(
                 onCopy: onCopy,
                 copyPayload: message.text,
                 borderRadius: const BorderRadius.only(
@@ -66,23 +59,16 @@ class ChatBubble extends StatelessWidget {
                   bottomRight: Radius.circular(22),
                   bottomLeft: Radius.zero,
                 ),
-                fill: message.isError
-                    ? const Color(0x33FF5470)
-                    : AppTheme.bubbleAiFill,
-                border: message.isError
-                    ? const Color(0x66FF5470)
-                    : AppTheme.bubbleAiBorder,
-                child: _aiContent(context),
-              ),
-            ),
-          ),
-        ],
+                fill: const Color(0x33FF5470),
+                border: const Color(0x66FF5470),
+                child: _errorContent(),
+              )
+            : _aiContent(context),
       ),
     );
   }
 
   Widget _aiContent(BuildContext context) {
-    if (message.isError) return _errorContent();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -103,72 +89,12 @@ class ChatBubble extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(message.timeLabel, style: AppTheme.timestampAi),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                _iconButton(
-                  icon: Icons.copy_rounded,
-                  label: 'کپی',
-                  onTap: onCopy,
-                ),
-                const SizedBox(width: 2),
-                _iconButton(
-                  icon: Icons.thumb_up_outlined,
-                  label: 'مفید بود',
-                  onTap: onThumbsUp,
-                ),
-                const SizedBox(width: 2),
-                _iconButton(
-                  icon: Icons.thumb_down_outlined,
-                  label: 'مفید نبود',
-                  onTap: onThumbsDown,
-                ),
-                const SizedBox(width: 2),
-                if (onReport != null) _reportButton(),
-              ],
-            ),
-          ],
+        _AiActions(
+          timeLabel: message.timeLabel,
+          copyText: message.text,
+          onReport: onReport,
         ),
       ],
-    );
-  }
-
-  Widget _iconButton({
-    required IconData icon,
-    required String label,
-    VoidCallback? onTap,
-  }) {
-    if (onTap == null) return const SizedBox.shrink();
-    return Semantics(
-      button: true,
-      label: label,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-          child: Icon(icon, size: 15, color: const Color(0x80FFFFFF)),
-        ),
-      ),
-    );
-  }
-
-  Widget _reportButton() {
-    return Semantics(
-      button: true,
-      label: 'گزارش پاسخ نامناسب',
-      child: InkWell(
-        onTap: onReport,
-        borderRadius: BorderRadius.circular(8),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-          child: Icon(Icons.outlined_flag, size: 15, color: Color(0x80FFFFFF)),
-        ),
-      ),
     );
   }
 
@@ -265,6 +191,108 @@ class ChatBubble extends StatelessWidget {
         const SizedBox(height: 5),
         Text(message.timeLabel, style: AppTheme.timestampUser),
       ],
+    );
+  }
+}
+
+// ── AI action row (timestamp + copy/report, with inline "کپی شد") ─────────
+
+/// Timestamp on the leading side, copy + report on the trailing side. Copying
+/// flashes an inline green "کپی شد" for ~1.5 s (local state + timer — not a
+/// toast/portal), matching the web design.
+class _AiActions extends StatefulWidget {
+  const _AiActions({
+    required this.timeLabel,
+    required this.copyText,
+    this.onReport,
+  });
+
+  final String timeLabel;
+  final String copyText;
+  final VoidCallback? onReport;
+
+  @override
+  State<_AiActions> createState() => _AiActionsState();
+}
+
+class _AiActionsState extends State<_AiActions> {
+  bool _copied = false;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _handleCopy() {
+    Clipboard.setData(ClipboardData(text: widget.copyText));
+    setState(() => _copied = true);
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(widget.timeLabel, style: AppTheme.timestampAi),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            AnimatedOpacity(
+              opacity: _copied ? 1 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: const Padding(
+                padding: EdgeInsets.only(left: 4),
+                child: Text(
+                  'کپی شد',
+                  style: TextStyle(
+                    fontFamily: AppTheme.fontFa,
+                    fontSize: 10,
+                    color: Color(0xFF34E0A1),
+                  ),
+                ),
+              ),
+            ),
+            _iconButton(
+              icon: Icons.copy_rounded,
+              label: 'کپی',
+              onTap: _handleCopy,
+            ),
+            if (widget.onReport != null) ...<Widget>[
+              const SizedBox(width: 2),
+              _iconButton(
+                icon: Icons.outlined_flag,
+                label: 'گزارش پاسخ نامناسب',
+                onTap: widget.onReport,
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _iconButton({
+    required IconData icon,
+    required String label,
+    VoidCallback? onTap,
+  }) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          child: Icon(icon, size: 15, color: const Color(0x80FFFFFF)),
+        ),
+      ),
     );
   }
 }
