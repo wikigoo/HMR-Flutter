@@ -6,6 +6,7 @@ import '../models/conversation_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/conversations_provider.dart';
+import '../repositories/chat_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/hmr_avatar.dart';
@@ -122,6 +123,7 @@ class _HomeShellState extends State<HomeShell> {
                       final ChatProvider p = ChatProvider(
                         conversationId: id,
                         userId: uid,
+                        repository: context.read<ChatRepository>(),
                         onUpdate: (String title, String last) =>
                             convs.upsertConversation(
                           id,
