@@ -15,6 +15,12 @@ class ApiService {
     Duration(seconds: 2),
   ];
 
+  // Single reused client: pools the TCP/TLS connection across preflight probes,
+  // the prediction call, and its retries, instead of opening a fresh socket per
+  // request (the static http.get/http.post helpers do the latter). Closed via
+  // dispose() when the owning provider is torn down.
+  final http.Client _client = http.Client();
+
   // ---------------------------------------------------------------------------
   // Public API
   // ---------------------------------------------------------------------------
@@ -65,6 +71,10 @@ class ApiService {
     throw ApiException(lastTransient!.message);
   }
 
+  /// Releases the pooled HTTP connection. Call when the owning provider is
+  /// disposed; the instance must not be reused afterwards.
+  void dispose() => _client.close();
+
   // ---------------------------------------------------------------------------
   // Private
   // ---------------------------------------------------------------------------
@@ -74,7 +84,7 @@ class ApiService {
   /// real 30-second request is sent.
   Future<void> _preflight() async {
     try {
-      final res = await http
+      final res = await _client
           .get(Uri.parse('$_baseUrl/api/v1/version'))
           .timeout(_preflightTimeout);
       if (res.statusCode >= 500) {
@@ -102,7 +112,7 @@ class ApiService {
     Map<String, dynamic> body,
   ) async {
     try {
-      final http.Response response = await http
+      final http.Response response = await _client
           .post(url, headers: headers, body: jsonEncode(body))
           .timeout(_timeout);
 
