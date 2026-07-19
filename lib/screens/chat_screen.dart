@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/message_model.dart';
 import '../providers/chat_provider.dart';
 import '../theme/app_theme.dart';
@@ -92,7 +93,7 @@ class _ChatScreenState extends State<ChatScreen> {
         side: const BorderSide(color: AppTheme.glowRing, width: 0.8),
       ),
       content: const Text(
-        'پیام کپی شد',
+        AppStrings.messageCopied,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: AppTheme.fontFa,
@@ -112,12 +113,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final String excerpt = text.length > 1000
         ? '${text.substring(0, 1000)}…'
         : text;
-    const String subject = 'گزارش پاسخ نامناسب — HMR';
-    final String body =
-        'سلام،\n'
-        'می‌خواهم این پاسخ هوش مصنوعی را گزارش کنم:\n\n'
-        '«$excerpt»\n\n'
-        'دلیل گزارش (لطفاً توضیح دهید): ';
+    const String subject = AppStrings.reportEmailSubject;
+    final String body = '${AppStrings.reportEmailBody}«$excerpt»\n\n'
+        '${AppStrings.reportEmailReasonPrompt}';
     final Uri mailto = Uri.parse(
       'mailto:$_supportEmail'
       '?subject=${Uri.encodeComponent(subject)}'
@@ -136,9 +134,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          _snack(
-            'برنامه ایمیلی یافت نشد. آدرس پشتیبانی کپی شد: $_supportEmail',
-          ),
+          _snack(AppStrings.noEmailApp(_supportEmail)),
         );
     }
   }
@@ -169,10 +165,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (BuildContext ctx) => const ConfirmDialog(
-        title: 'پاک‌کردن گفت‌وگو',
-        body:
-            'همهٔ پیام‌های این گفت‌وگو حذف می‌شوند. این کار قابل بازگشت نیست.',
-        confirmLabel: 'پاک کن',
+        title: AppStrings.clearChatTitle,
+        body: AppStrings.clearChatBody,
+        confirmLabel: AppStrings.clearChatConfirm,
       ),
     );
     if (ok ?? false) {
@@ -314,34 +309,32 @@ class _EmptyState extends StatelessWidget {
     _CategoryCard(
       icon: Icons.phone_android_rounded,
       gradient: <Color>[Color(0xFF00D4FF), Color(0xFF2F6BFF)],
-      title: 'گوشی نو',
-      prompt:
-          'راهنمای خرید گوشی نو می‌خوام. بهترین گوشی‌های بازار الان چیا هستن؟',
+      title: AppStrings.catNewPhoneTitle,
+      prompt: AppStrings.catNewPhonePrompt,
     ),
     _CategoryCard(
       icon: Icons.recycling_rounded,
       gradient: <Color>[Color(0xFF34E0A1), Color(0xFF0EA5E9)],
-      title: 'گوشی دست دوم',
-      prompt:
-          'چک‌لیست خرید گوشی دست دوم رو بهم بگو. چطور گوشی سالم رو تشخیص بدم؟',
+      title: AppStrings.catUsedPhoneTitle,
+      prompt: AppStrings.catUsedPhonePrompt,
     ),
     _CategoryCard(
       icon: Icons.build_rounded,
       gradient: <Color>[Color(0xFFF6B73C), Color(0xFFF97316)],
-      title: 'عیب‌یابی',
-      prompt: 'گوشیم مشکل داره. چطور عیب‌یابیش کنم؟',
+      title: AppStrings.catTroubleshootTitle,
+      prompt: AppStrings.catTroubleshootPrompt,
     ),
     _CategoryCard(
       icon: Icons.school_rounded,
       gradient: <Color>[Color(0xFF6366F1), Color(0xFF8B5CF6)],
-      title: 'آموزش سخت‌افزار',
-      prompt: 'می‌خوام درباره سخت‌افزار گوشی بیشتر بدونم. از کجا شروع کنم؟',
+      title: AppStrings.catEducationTitle,
+      prompt: AppStrings.catEducationPrompt,
     ),
     _CategoryCard(
       icon: Icons.headphones_rounded,
       gradient: <Color>[Color(0xFFEC4899), Color(0xFFF43F5E)],
-      title: 'لوازم جانبی',
-      prompt: 'بهترین لوازم جانبی برای گوشی من چیه؟ راهنمایی می‌خوام.',
+      title: AppStrings.catAccessoriesTitle,
+      prompt: AppStrings.catAccessoriesPrompt,
     ),
   ];
 
@@ -370,7 +363,7 @@ class _EmptyState extends StatelessWidget {
             const Text('HMR', style: AppTheme.welcomeKicker),
             const SizedBox(height: 8),
             const Text(
-              'من همر هستم، مشاور هوشمند سخت‌افزار شما.\nچه کمکی از دستم برمی‌آید؟',
+              AppStrings.welcomeBody,
               textAlign: TextAlign.center,
               textDirection: TextDirection.rtl,
               style: AppTheme.welcomeBody,
@@ -511,7 +504,7 @@ class _AppBar extends StatelessWidget {
             _GhostIconButton(
               icon: Icons.arrow_back_ios_new,
               onTap: () => Navigator.maybePop(context),
-              label: 'بازگشت',
+              label: AppStrings.back,
             )
           else
             // Keep the brand visually centred against the clear button.
@@ -520,7 +513,7 @@ class _AppBar extends StatelessWidget {
           _GhostIconButton(
             icon: Icons.delete_sweep_outlined,
             onTap: onClear,
-            label: 'پاک کردن گفتگو',
+            label: AppStrings.clearChatLabel,
           ),
         ],
       ),
@@ -558,7 +551,7 @@ class _BrandIdentity extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 5),
-                const Text('مشاور هوشمند موبایل', style: AppTheme.subtitle),
+                const Text(AppStrings.brandSubtitle, style: AppTheme.subtitle),
               ],
             ),
           ],
@@ -692,7 +685,7 @@ class _Composer extends StatelessWidget {
     required this.focus,
     required this.onSend,
     required this.bottomInset,
-    this.hint = 'پیام خود را بنویسید…',
+    this.hint = AppStrings.composerHint,
   });
 
   final TextEditingController controller;
@@ -782,7 +775,7 @@ class _SendButton extends StatelessWidget {
     final bool loading = context.watch<ChatProvider>().isLoading;
     return Semantics(
       button: true,
-      label: 'ارسال پیام',
+      label: AppStrings.sendMessage,
       enabled: !loading,
       child: GestureDetector(
         onTap: loading ? null : onSend,
@@ -848,7 +841,11 @@ class _HeroLanding extends StatelessWidget {
               const HmrAvatar(size: 92, glow: true),
               const SizedBox(height: 22),
               const Text(
+<<<<<<< HEAD
                 'امروز چطور می‌تونم کمکتون کنم؟',
+=======
+                AppStrings.heroTitle,
+>>>>>>> main
                 textAlign: TextAlign.center,
                 textDirection: TextDirection.rtl,
                 style: TextStyle(
@@ -865,7 +862,7 @@ class _HeroLanding extends StatelessWidget {
                 focus: focus,
                 onSend: onSend,
                 bottomInset: 0,
-                hint: 'هر سوالی درباره موبایل دارید بپرسید',
+                hint: AppStrings.heroComposerHint,
               ),
               if (showFooter) ...<Widget>[
                 const SizedBox(height: 24),
@@ -899,13 +896,13 @@ class _FooterLinks extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       textDirection: TextDirection.rtl,
       children: <Widget>[
-        link('دانلود اپلیکیشن', '/download'),
+        link(AppStrings.downloadApp, '/download'),
         sep,
-        link('حریم خصوصی', '/privacy'),
+        link(AppStrings.privacy, '/privacy'),
         sep,
-        link('درباره ما', '/about'),
+        link(AppStrings.about, '/about'),
         sep,
-        link('سلب مسئولیت', '/disclaimer'),
+        link(AppStrings.disclaimer, '/disclaimer'),
       ],
     );
   }

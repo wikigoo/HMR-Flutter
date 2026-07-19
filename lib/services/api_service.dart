@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 
+import '../l10n/app_strings.dart';
+
 class ApiService {
   static const String _baseUrl = 'https://srv.hmrbot.com';
   static const String _chatflowId = '463b566b-f0f1-44d8-b498-3827c188783a';
@@ -15,6 +17,12 @@ class ApiService {
     Duration(seconds: 2),
   ];
 
+  // Single reused client: pools the TCP/TLS connection across preflight probes,
+  // the prediction call, and its retries, instead of opening a fresh socket per
+  // request (the static http.get/http.post helpers do the latter). Closed via
+  // dispose() when the owning provider is torn down.
+  final http.Client _client = http.Client();
+
   // ---------------------------------------------------------------------------
   // Public API
   // ---------------------------------------------------------------------------
@@ -24,9 +32,7 @@ class ApiService {
     required String sessionId,
   }) async {
     if (_baseUrl.trim().isEmpty) {
-      throw const ApiException(
-        'خطای پیکربندی برنامه. لطفاً با پشتیبانی تماس بگیرید.',
-      );
+      throw const ApiException(AppStrings.apiConfigError);
     }
 
     // Pre-flight: fast network check before the real request.
@@ -36,9 +42,7 @@ class ApiService {
         await Connectivity().checkConnectivity();
     if (connectivity.every(
         (ConnectivityResult r) => r == ConnectivityResult.none)) {
-      throw const ApiException(
-        'اتصال اینترنت برقرار نیست. لطفاً اتصال خود را بررسی کنید.',
-      );
+      throw const ApiException(AppStrings.apiNoInternet);
     }
     await _preflight();
 
@@ -65,6 +69,10 @@ class ApiService {
     throw ApiException(lastTransient!.message);
   }
 
+  /// Releases the pooled HTTP connection. Call when the owning provider is
+  /// disposed; the instance must not be reused afterwards.
+  void dispose() => _client.close();
+
   // ---------------------------------------------------------------------------
   // Private
   // ---------------------------------------------------------------------------
@@ -74,22 +82,16 @@ class ApiService {
   /// real 30-second request is sent.
   Future<void> _preflight() async {
     try {
-      final res = await http
+      final res = await _client
           .get(Uri.parse('$_baseUrl/api/v1/version'))
           .timeout(_preflightTimeout);
       if (res.statusCode >= 500) {
-        throw _TransientError(
-          'سرور همر در دسترس نیست (${res.statusCode}). لطفاً لحظاتی دیگر تلاش کنید.',
-        );
+        throw _TransientError(AppStrings.apiServerUnavailable(res.statusCode));
       }
     } on TimeoutException {
-      throw const _TransientError(
-        'سرور همر پاسخ نمی‌دهد. اتصال اینترنت یا فیلترینگ را بررسی کنید.',
-      );
+      throw const _TransientError(AppStrings.apiServerNotResponding);
     } on http.ClientException {
-      throw const _TransientError(
-        'اتصال به سرور برقرار نشد. لطفاً اتصال اینترنت خود را بررسی کنید.',
-      );
+      throw const _TransientError(AppStrings.apiConnectFailed);
     } catch (_) {
       // Non-network errors (e.g. unexpected response format) — let the real
       // request surface its own error rather than blocking here.
@@ -102,7 +104,7 @@ class ApiService {
     Map<String, dynamic> body,
   ) async {
     try {
-      final http.Response response = await http
+      final http.Response response = await _client
           .post(url, headers: headers, body: jsonEncode(body))
           .timeout(_timeout);
 
@@ -111,49 +113,31 @@ class ApiService {
             jsonDecode(response.body) as Map<String, dynamic>;
         final String? answer = data['text'] as String?;
         if (answer != null && answer.trim().isNotEmpty) return answer.trim();
-        throw const ApiException(
-          'متأسفانه پاسخی از سرور دریافت نشد. لطفاً دوباره تلاش کنید.',
-        );
+        throw const ApiException(AppStrings.apiEmptyResponse);
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        throw const ApiException(
-          'خطای احراز هویت. لطفاً با پشتیبانی تماس بگیرید.',
-        );
+        throw const ApiException(AppStrings.apiAuthError);
       } else if (response.statusCode == 502 ||
           response.statusCode == 503 ||
           response.statusCode == 504) {
         // Gateway / service-unavailable — transient, worth retrying.
-        throw _TransientError(
-          'خطای سرور (${response.statusCode}). لطفاً لحظاتی دیگر تلاش کنید.',
-        );
+        throw _TransientError(AppStrings.apiServerError(response.statusCode));
       } else if (response.statusCode == 500) {
-        throw const ApiException(
-          'خطای داخلی سرور. لطفاً لحظاتی دیگر تلاش کنید.',
-        );
+        throw const ApiException(AppStrings.apiInternalError);
       } else {
-        throw ApiException(
-          'خطای سرور (${response.statusCode}). لطفاً لحظاتی دیگر تلاش کنید.',
-        );
+        throw ApiException(AppStrings.apiServerError(response.statusCode));
       }
     } on TimeoutException {
-      throw const _TransientError(
-        'زمان اتصال به پایان رسید. لطفاً اتصال اینترنت خود را بررسی کنید.',
-      );
+      throw const _TransientError(AppStrings.apiTimeout);
     } on http.ClientException {
-      throw const _TransientError(
-        'خطا در برقراری ارتباط با سرور. لطفاً اتصال اینترنت خود را بررسی کنید.',
-      );
+      throw const _TransientError(AppStrings.apiConnectionError);
     } on FormatException {
-      throw const ApiException(
-        'پاسخ دریافتی از سرور نامعتبر است. لطفاً دوباره تلاش کنید.',
-      );
+      throw const ApiException(AppStrings.apiInvalidResponse);
     } on ApiException {
       rethrow;
     } on _TransientError {
       rethrow;
     } catch (_) {
-      throw const ApiException(
-        'خطای غیرمنتظره‌ای رخ داد. لطفاً دوباره تلاش کنید.',
-      );
+      throw const ApiException(AppStrings.unexpectedError);
     }
   }
 }

@@ -7,8 +7,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'l10n/app_strings.dart';
 import 'providers/auth_provider.dart';
 import 'providers/conversations_provider.dart';
+import 'repositories/chat_repository.dart';
 import 'screens/home_shell.dart';
 import 'theme/app_theme.dart';
 
@@ -53,18 +55,28 @@ class HmrApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: <ChangeNotifierProvider<dynamic>>[
+      providers: [
+        // App-scoped data-access seam. Shared by ChatProvider and
+        // ConversationsProvider; owns the pooled HTTP client, closed on dispose.
+        Provider<ChatRepository>(
+          create: (_) => ChatRepository(),
+          dispose: (_, ChatRepository repo) => repo.dispose(),
+        ),
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
         ChangeNotifierProvider<ConversationsProvider>(
-            create: (_) => ConversationsProvider()),
+          create: (BuildContext context) =>
+              ConversationsProvider(context.read<ChatRepository>()),
+        ),
       ],
       child: MaterialApp(
-        title: 'همر | HMR',
+        title: AppStrings.appTitle,
         debugShowCheckedModeBanner: false,
         theme: _theme,
+        // Persian-only product (CLAUDE.md invariant #1); the app is not
+        // actually translated into English, so only fa-IR is declared.
+        locale: const Locale('fa', 'IR'),
         supportedLocales: const <Locale>[
           Locale('fa', 'IR'),
-          Locale('en', 'US'),
         ],
         localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
           GlobalMaterialLocalizations.delegate,
@@ -136,7 +148,7 @@ class _FriendlyErrorScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 20),
                 Text(
-                  'خطایی رخ داد',
+                  AppStrings.errorScreenTitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: AppTheme.fontFa,
@@ -147,7 +159,7 @@ class _FriendlyErrorScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'لطفاً برنامه را مجدداً باز کنید.',
+                  AppStrings.errorScreenBody,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: AppTheme.fontFa,
