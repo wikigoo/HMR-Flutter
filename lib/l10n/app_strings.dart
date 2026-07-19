@@ -13,7 +13,7 @@ abstract final class AppStrings {
   // ── Brand ────────────────────────────────────────────────────────────────
   static const String appTitle = 'همر | HMR';
   static const String brandSubtitle = 'مشاور هوشمند موبایل';
-  static const String appVersionLabel = 'HMR · نسخهٔ ۱.۰';
+  static const String appVersionLabel = 'HMR · نسخهٔ ۱.۰.۲';
 
   // ── Fatal error screen (release crash fallback) ──────────────────────────
   static const String errorScreenTitle = 'خطایی رخ داد';
