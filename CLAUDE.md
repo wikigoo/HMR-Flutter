@@ -41,11 +41,19 @@ lib/
 │   └── app_theme.dart               Single source of truth for all design tokens:
 │                                    colors (Color(0xAARRGGBB) — no withOpacity),
 │                                    text styles, gradients, Markdown stylesheet
+├── l10n/
+│   └── app_strings.dart             Single source of truth for all Persian UI copy
+│                                    (const strings + parameterized functions). The
+│                                    app is Persian-only; this is a copy deck, not i18n.
 ├── providers/                       ChangeNotifier state — Provider package
 │   ├── auth_provider.dart           Google Sign-In state machine
-│   ├── chat_provider.dart           Per-session messages, API dispatch, retry logic
+│   ├── chat_provider.dart           Per-session messages, API dispatch, retry logic;
+│                                    takes a ChatRepository (constructor injection)
 │   └── conversations_provider.dart  Conversation index — SharedPreferences JSON array;
-│                                    message CRUD delegated to ChatDatabase
+│                                    message CRUD delegated to ChatRepository
+├── repositories/
+│   └── chat_repository.dart         App-scoped data-access seam over ApiService +
+│                                    ChatDatabase; the only file importing chat_database
 ├── screens/
 │   ├── conversations_screen.dart    History list, sidebar drawer, new-chat FAB,
 │                                    ghost-conversation cleanup on back-nav
@@ -103,8 +111,8 @@ android/
 
 ### Ghost-conversation cleanup (`conversations_screen.dart`)
 
-- After returning from `ChatScreen`, `_openConversation()` queries `ChatDatabase.instance.fetchMessages(conv.id)`.
-- If the message list is empty, `deleteConversation()` is called silently. This handles both new conversations the user immediately backed out of and any legacy empty records.
+- After returning from `ChatScreen`, `_openConversation()` calls `ChatRepository.hasMessages(conv.id)` (the UI no longer touches `ChatDatabase` directly).
+- If there are no messages, `deleteConversation()` is called silently. This handles both new conversations the user immediately backed out of and any legacy empty records.
 
 ### Storage split
 
