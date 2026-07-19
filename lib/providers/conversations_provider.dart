@@ -2,10 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-import '../database/chat_database.dart';
 import '../models/conversation_model.dart';
+import '../repositories/chat_repository.dart';
 
 class ConversationsProvider extends ChangeNotifier {
+  ConversationsProvider(this._repo);
+
+  final ChatRepository _repo;
+
   static const String _indexKey = 'conversations_index';
   static const _uuid = Uuid();
 
@@ -101,13 +105,13 @@ class ConversationsProvider extends ChangeNotifier {
 
   Future<void> deleteConversation(String id) async {
     _all.removeWhere((c) => c.id == id);
-    await ChatDatabase.instance.deleteMessages(id);
+    await _repo.deleteMessages(id);
     await _saveIndex();
     notifyListeners();
   }
 
   Future<void> deleteAllConversations() async {
-    await ChatDatabase.instance.deleteAllMessages();
+    await _repo.deleteAllMessages();
     _all.clear();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove(_indexKey);

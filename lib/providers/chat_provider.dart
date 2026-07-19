@@ -1,15 +1,17 @@
 import 'package:flutter/foundation.dart';
 
-import '../database/chat_database.dart';
 import '../models/message_model.dart';
+import '../repositories/chat_repository.dart';
+// ApiException (thrown by the repository's network call) is caught below.
 import '../services/api_service.dart';
 
 class ChatProvider extends ChangeNotifier {
   ChatProvider({
     required this.conversationId,
+    required ChatRepository repository,
     this.userId,
     this.onUpdate,
-  });
+  }) : _repo = repository;
 
   final String conversationId;
 
@@ -20,8 +22,9 @@ class ChatProvider extends ChangeNotifier {
 
   final void Function(String title, String lastMessage)? onUpdate;
 
-  final ApiService _api = ApiService();
-  final ChatDatabase _db = ChatDatabase.instance;
+  // Injected data-access seam; the app-scoped repository owns (and disposes)
+  // the underlying ApiService / ChatDatabase.
+  final ChatRepository _repo;
 
   List<MessageModel> _messages = [];
   bool _isLoading = false;
@@ -44,14 +47,16 @@ class ChatProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    // The repository (and its pooled HTTP client) is app-scoped and shared
+    // across conversations — it is NOT disposed here, only the disposed guard
+    // is flipped so late async callbacks skip notifyListeners().
     _disposed = true;
-    _api.dispose(); // release the pooled HTTP connection
     super.dispose();
   }
 
   Future<void> loadHistory() async {
     try {
-      _messages = await _db.fetchMessages(conversationId);
+      _messages = await _repo.loadMessages(conversationId);
       _metaUpdated = _messages.isNotEmpty;
       _safeNotify();
     } catch (e) {
@@ -78,7 +83,7 @@ class ChatProvider extends ChangeNotifier {
     _safeNotify();
 
     try {
-      await _db.insertMessage(conversationId, userMsg);
+      await _repo.saveMessage(conversationId, userMsg);
     } catch (e) {
       debugPrint('HMR: insert user msg — $e');
     }
@@ -106,7 +111,7 @@ class ChatProvider extends ChangeNotifier {
 
   Future<void> _callApi(String text) async {
     try {
-      final String aiText = await _api.sendMessage(
+      final String aiText = await _repo.fetchAiResponse(
         text,
         // Phase 4: signed-in -> stable Google `sub` (cross-device continuity);
         // guest -> local per-conversation id (unchanged behaviour).
@@ -116,7 +121,7 @@ class ChatProvider extends ChangeNotifier {
       final MessageModel aiMsg = MessageModel.aiMessage(aiText);
       _messages.add(aiMsg);
       try {
-        await _db.insertMessage(conversationId, aiMsg);
+        await _repo.saveMessage(conversationId, aiMsg);
       } catch (e) {
         debugPrint('HMR: insert ai msg — $e');
       }
@@ -150,7 +155,7 @@ class ChatProvider extends ChangeNotifier {
     _lastFailedText = null;
     _safeNotify();
     try {
-      await _db.deleteMessages(conversationId);
+      await _repo.deleteMessages(conversationId);
     } catch (e) {
       debugPrint('HMR: clear error — $e');
     }
