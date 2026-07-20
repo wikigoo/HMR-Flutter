@@ -12,7 +12,8 @@ Instructions for Claude Code and any AI coding assistant working in this reposit
 |---|---|
 | Frontend | Flutter 3.44.2, Android-first |
 | AI backend | Flowise on a self-hosted VPS (`https://srv.hmrbot.com`) |
-| Auth | Google Sign-In via **Google Identity Services** (`google_sign_in`) — Google Cloud project `ir-hmrbot-app`. **No Firebase Auth** — this repo has no `firebase_auth`/`firebase_core` dependency. |
+| Auth | Google Sign-In via **Google Identity Services** (`google_sign_in` `^6.2.1`) — Google Cloud project **`hmrbot-app` (`326113602877`)**. The former project `ir-hmrbot-app` (`829078792642`) was deleted 2026-07-20; nothing may reference it. **No Firebase Auth** — this repo has no `firebase_auth`/`firebase_core` dependency (a `google-services.json` being present does not imply otherwise). |
+| Package id | `com.hmrbot` (renamed from `ir.hmrbot.app` on 2026-07-20; the old id is retired) |
 | Storage | SQLite (messages) + SharedPreferences (conversation index) — 100 % on-device, no sync |
 | Locale | Persian (Farsi), RTL, Jalali (Shamsi) calendar |
 
@@ -55,9 +56,20 @@ lib/
 │   └── chat_repository.dart         App-scoped data-access seam over ApiService +
 │                                    ChatDatabase; the only file importing chat_database
 ├── screens/
-│   ├── conversations_screen.dart    History list, sidebar drawer, new-chat FAB,
+│   ├── welcome_screen.dart          First-launch panel (design system's "Login"):
+│                                    HMR orb, Google pill, guest pill. NOT an auth
+│                                    gate — both paths enter, failed sign-in falls
+│                                    through to guest. Shown once, gated on the
+│                                    `seen_welcome` SharedPreferences flag set by
+│                                    `_FirstRun` in main.dart
+│   ├── home_shell.dart              Responsive entry: narrow → conversations list
+│                                    + drawer; wide → persistent two-pane sidebar
+│   ├── conversations_screen.dart    History list, sidebar drawer (new-chat row,
+│                                    search wired to ConversationsProvider.search,
+│                                    account card, links), new-chat FAB,
 │                                    ghost-conversation cleanup on back-nav
-│   └── chat_screen.dart             Chat surface, composer, clear-history confirm
+│   └── chat_screen.dart             Chat surface, composer, clear-history confirm,
+│                                    five-pillar empty state + PriceDisclaimer
 ├── services/
 │   └── api_service.dart             Flowise REST client — offline guard, retry loop,
 │                                    _TransientError / ApiException separation
@@ -215,12 +227,24 @@ After every code change, before committing:
 
 | # | Action | Blocker |
 |---|---|---|
-| 1 | Rotate signing keystore; purge old keystore from git history; enroll Play App Signing | Needs `keytool` + Play Console + force-push to history |
+| 1 | **Register the release SHA-1 on an Android OAuth client for `com.hmrbot` in project `326113602877`** | Google Cloud Console (web UI) |
+| 2 | Consider enrolling in Play App Signing | Play Console |
 
-> **Done 2026-07-14 — no longer pending:** registering the release SHA-1 in Google Cloud. Verified:
-> the release keystore's SHA-1 (`2D:5B:3E:9A:…`) matches the Android OAuth client `…og77…` in project
-> `ir-hmrbot-app`, and Android sign-in works. (Android OAuth clients take a SHA-1 only; a SHA-256 will
-> be needed for Play App Signing when item 1 is done.)
+> **Item 1 blocks Google sign-in on release builds.** Until it is done, `signInWithGoogle()` fails.
+> The welcome panel is built to survive that — a failed sign-in falls through to guest rather than
+> trapping the user — but sign-in itself will not work.
+>
+> The 2026-07-14 note that used to sit here ("SHA-1 verified, Android sign-in works") is **void**:
+> it referred to package `ir.hmrbot.app`, keystore SHA-1 `2D:5B:3E:9A:…`, and OAuth client
+> `829078792642-og77…`, all three of which were replaced or deleted on 2026-07-20.
+>
+> Current release keystore: `hmr-production.jks`, alias `hmr-prod`, SHA-1
+> `B0:17:1F:0B:87:73:21:B9:73:AB:E3:15:AD:5F:08:70:4F:D0:CA:4B`. The owner decided on 2026-07-20 to
+> keep this key rather than rotate it. See `HMR-Ops/FACTS.md` → "Android release & signing" for the
+> full record, including an open security item on it.
+>
+> Item 2 is the mitigation for that security item: with Play App Signing, this keystore becomes a
+> mere *upload* key that can be reset from the Play Console without breaking any user's update path.
 
 ## Auth notes
 
