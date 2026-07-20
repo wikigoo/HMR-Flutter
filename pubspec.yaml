@@ -48,10 +48,10 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#05070F"
-  image: "assets/images/hmr_logo.png"
+  image: "assets/images/splash_logo.png"
   android_12:
     color: "#05070F"
-    image: "assets/images/hmr_logo.png"
+    image: "assets/images/splash_logo.png"
 
 flutter:
   uses-material-design: true
@@ -59,7 +59,7 @@ flutter:
   assets:
     - assets/images/hmr_logo.png
     - assets/images/hmr-mark.png
-    - assets/images/hmr-avatar.png
+    - assets/images/splash_logo.png
 
   fonts:
     - family: SpaceGrotesk

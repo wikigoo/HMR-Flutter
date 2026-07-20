@@ -22,11 +22,7 @@ class HmrAvatar extends StatelessWidget {
       padding: EdgeInsets.all(pad),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[AppTheme.cyan, AppTheme.blue],
-        ),
+        color: AppTheme.cyan,
         boxShadow: glow
             ? <BoxShadow>[BoxShadow(color: AppTheme.glow, blurRadius: blur)]
             : null,
