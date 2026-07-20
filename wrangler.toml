@@ -1,0 +1,3 @@
+name = "hmr-flutter-bot"
+compatibility_date = "2026-07-20"
+main = "src/index.js"
