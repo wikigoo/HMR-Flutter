@@ -90,7 +90,11 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
     final double bottomSafe = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       backgroundColor: AppTheme.navy950,
-      drawer: const _Sidebar(),
+      drawer: _Sidebar(
+        onNewChat: _newConversation,
+        onSearch: (String q) =>
+            context.read<ConversationsProvider>().search(q),
+      ),
       body: Stack(
         children: <Widget>[
           const HmrBackground(),
@@ -401,9 +405,103 @@ class _EmptyConversations extends StatelessWidget {
 // ⚠️ USER ACTION REQUIRED: replace with the live privacy-policy URL before release.
 const String _kPrivacyPolicyUrl = 'https://hmrbot.com/privacy';
 const String _kDownloadUrl = 'https://hmrbot.com/download';
+const String _kDisclaimerUrl = 'https://hmrbot.com/disclaimer';
+
+/// Sidebar "new chat" row — icon trailing, label leading (RTL).
+class _SidebarNewChat extends StatelessWidget {
+  const _SidebarNewChat({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: const Padding(
+          padding: EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  AppStrings.newChatShort,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontFamily: AppTheme.fontFa,
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Icon(Icons.edit_outlined, size: 18, color: AppTheme.cyan),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Sidebar search field — filters the conversations list behind the drawer.
+class _SidebarSearch extends StatelessWidget {
+  const _SidebarSearch({required this.onChanged});
+
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 46,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: AppTheme.inputFill,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.inputBorder, width: 0.8),
+      ),
+      child: Row(
+        children: <Widget>[
+          const Icon(Icons.search_rounded, size: 18, color: AppTheme.textSecondary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              onChanged: onChanged,
+              textAlign: TextAlign.right,
+              textInputAction: TextInputAction.search,
+              style: const TextStyle(
+                fontFamily: AppTheme.fontFa,
+                fontSize: 13.5,
+                color: AppTheme.textBody,
+              ),
+              decoration: const InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                hintText: AppStrings.searchHint,
+                hintStyle: TextStyle(
+                  fontFamily: AppTheme.fontFa,
+                  fontSize: 13.5,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _Sidebar extends StatelessWidget {
-  const _Sidebar();
+  const _Sidebar({required this.onNewChat, required this.onSearch});
+
+  /// Starts a new conversation — same entry point as the list screen's FAB.
+  final VoidCallback onNewChat;
+
+  /// Live query for the conversations list behind the drawer.
+  final ValueChanged<String> onSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -432,6 +530,15 @@ class _Sidebar extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 24),
+              _SidebarNewChat(
+                onTap: () {
+                  Navigator.pop(context);
+                  onNewChat();
+                },
+              ),
+              const SizedBox(height: 14),
+              _SidebarSearch(onChanged: onSearch),
               const SizedBox(height: 22),
               _AccountCard(auth: auth),
               const SizedBox(height: 22),
@@ -465,6 +572,17 @@ class _Sidebar extends StatelessWidget {
                   Navigator.pop(context);
                   await launchUrl(
                     Uri.parse(_kPrivacyPolicyUrl),
+                    mode: LaunchMode.externalApplication,
+                  );
+                },
+              ),
+              _DrawerTile(
+                icon: Icons.description_outlined,
+                label: AppStrings.disclaimer,
+                onTap: () async {
+                  Navigator.pop(context);
+                  await launchUrl(
+                    Uri.parse(_kDisclaimerUrl),
                     mode: LaunchMode.externalApplication,
                   );
                 },
