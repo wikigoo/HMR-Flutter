@@ -34,6 +34,13 @@ subprojects {
                 apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
             }
         }
+        // Workaround for cross-drive path error (D: project vs C: pub cache).
+        // Disables includeAndroidResources which triggers GenerateTestConfig tasks.
+        // These tasks fail when trying to calculate relative paths between different
+        // roots on Windows.
+        (extensions.findByName("android") as? com.android.build.gradle.BaseExtension)?.testOptions {
+            unitTests.isIncludeAndroidResources = false
+        }
     }
     // Run AFTER each plugin's own build script has set its (often outdated) versions, so our
     // values win. If the project is already evaluated, apply immediately.
