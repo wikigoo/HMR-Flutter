@@ -37,7 +37,7 @@ class AppTheme {
 
   // ── Glass surfaces (backdrop-blur intended) ──────────────────────
   static const Color glassFill = Color(0x0FFFFFFF); // white @ ~6%
-  static const Color glassBorder = Color(0x21FFFFFF); // white @ ~13%
+  static const Color glassBorder = Color(0x24FFFFFF); // white @ ~14%
 
   // ── Optimised bubble surfaces (NO backdrop-blur — solid fill) ────
   // A semi-transparent dark slate reads as glass over the ambient glow
@@ -110,7 +110,7 @@ class AppTheme {
   static const TextStyle bodyAi = TextStyle(
     fontFamily: fontFa,
     fontSize: 14,
-    height: 1.8, // relaxed leading for long Persian responses
+    height: 1.85, // relaxed leading for long Persian responses
     color: textBody,
   );
 

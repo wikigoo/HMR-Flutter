@@ -1,17 +1,17 @@
-import 'dart:ui';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'l10n/app_strings.dart';
 import 'providers/auth_provider.dart';
 import 'providers/conversations_provider.dart';
 import 'repositories/chat_repository.dart';
 import 'screens/home_shell.dart';
+import 'screens/welcome_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -95,10 +95,11 @@ class HmrApp extends StatelessWidget {
             ),
           );
         },
-        // Launch directly — no mandatory auth gate. HomeShell picks the
-        // mobile (list + drawer) or desktop (persistent sidebar) layout by
-        // width; silent sign-in + history load happen on first frame.
-        home: const HomeShell(),
+        // Still no mandatory auth gate. [_FirstRun] shows the welcome panel
+        // once, then hands over to HomeShell, which picks the mobile (list +
+        // drawer) or desktop (persistent sidebar) layout by width; silent
+        // sign-in + history load happen on first frame.
+        home: const _FirstRun(),
       ),
     );
   }
@@ -174,5 +175,50 @@ class _FriendlyErrorScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Shows [WelcomeScreen] on the very first launch, [HomeShell] every time after.
+///
+/// The flag lives in SharedPreferences next to the conversation index. While it
+/// is being read the app renders nothing but the background, so the welcome
+/// panel never flashes on top of an already-onboarded user's history.
+class _FirstRun extends StatefulWidget {
+  const _FirstRun();
+
+  @override
+  State<_FirstRun> createState() => _FirstRunState();
+}
+
+class _FirstRunState extends State<_FirstRun> {
+  static const String _kSeenWelcome = 'seen_welcome';
+
+  bool? _showWelcome;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() => _showWelcome = !(prefs.getBool(_kSeenWelcome) ?? false));
+  }
+
+  Future<void> _dismiss() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kSeenWelcome, true);
+    if (!mounted) return;
+    setState(() => _showWelcome = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_showWelcome == null) {
+      return const ColoredBox(color: AppTheme.navy950, child: SizedBox.expand());
+    }
+    return _showWelcome! ? WelcomeScreen(onDone: _dismiss) : const HomeShell();
   }
 }

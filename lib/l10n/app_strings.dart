@@ -29,6 +29,13 @@ abstract final class AppStrings {
   static const String signInWithGoogle = 'ورود با گوگل';
   static const String signOut = 'خروج از حساب';
 
+  // ── Welcome screen (skippable, first launch only) ────────────────────────
+  static const String welcomePanelBody =
+      'مشاور هوشمند سخت‌افزار موبایل شما.\n'
+      'برای شروع وارد شو یا به‌عنوان مهمان ادامه بده.';
+  static const String continueAsGuest = 'ورود به عنوان مهمان';
+  static const String welcomeTerms = 'با ادامه، قوانین و حریم خصوصی HMR را می‌پذیری.';
+
   // ── Delete-conversation dialog ───────────────────────────────────────────
   static const String deleteConversationTitle = 'حذف گفت‌وگو';
   static const String deleteConversationBody = 'این گفت‌وگو برای همیشه حذف می‌شود.';
@@ -56,6 +63,7 @@ abstract final class AppStrings {
 
   // ── Sidebar / drawer ─────────────────────────────────────────────────────
   static const String newChat = 'گفتگوی جدید';
+  static const String newChatShort = 'گپ جدید';
   static const String chatHistory = 'تاریخچه گفتگو';
   static const String searchHint = 'جست‌وجو در گفت‌وگوها';
   static const String emptyHistorySidebar =

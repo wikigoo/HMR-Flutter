@@ -165,10 +165,10 @@ class ChatBubble extends StatelessWidget {
               ),
             ],
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(22),
-              topRight: Radius.circular(22),
-              bottomRight: Radius.zero, // sharp tail points at the user
-              bottomLeft: Radius.circular(22),
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+              bottomRight: Radius.circular(4), // sharp tail refined
+              bottomLeft: Radius.circular(24),
             ),
             child: _userContent(),
           ),

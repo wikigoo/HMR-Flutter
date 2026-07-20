@@ -352,12 +352,12 @@ class _EmptyState extends StatelessWidget {
                 boxShadow: <BoxShadow>[
                   BoxShadow(
                     color: AppTheme.glow,
-                    blurRadius: 36,
-                    spreadRadius: 2,
+                    blurRadius: 40,
+                    spreadRadius: 4,
                   ),
                 ],
               ),
-              child: const HmrAvatar(size: 64),
+              child: const HmrAvatar(size: 72),
             ),
             const SizedBox(height: 16),
             const Text('HMR', style: AppTheme.welcomeKicker),
@@ -405,34 +405,32 @@ class _CategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Semantics(
         button: true,
         label: card.title,
-        child: GestureDetector(
+        child: InkWell(
           onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          borderRadius: BorderRadius.circular(20),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.glassBorder, width: 0.8),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: <Color>[
-                  Color.fromARGB(
-                    31,
-                    (card.gradient[0].r * 255.0).round(),
-                    (card.gradient[0].g * 255.0).round(),
-                    (card.gradient[0].b * 255.0).round(),
-                  ),
-                  Color.fromARGB(
-                    15,
-                    (card.gradient[1].r * 255.0).round(),
-                    (card.gradient[1].g * 255.0).round(),
-                    (card.gradient[1].b * 255.0).round(),
-                  ),
-                ],
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Color.fromARGB(
+                  60,
+                  (card.gradient[0].r * 255.0).round(),
+                  (card.gradient[0].g * 255.0).round(),
+                  (card.gradient[0].b * 255.0).round(),
+                ),
+                width: 0.8,
+              ),
+              color: Color.fromARGB(
+                12,
+                (card.gradient[0].r * 255.0).round(),
+                (card.gradient[0].g * 255.0).round(),
+                (card.gradient[0].b * 255.0).round(),
               ),
             ),
             child: Row(
@@ -702,20 +700,24 @@ class _Composer extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.fromLTRB(7, 7, 8, 7),
+            duration: const Duration(milliseconds: 240),
+            padding: const EdgeInsets.fromLTRB(8, 8, 10, 8),
             decoration: BoxDecoration(
               color: AppTheme.inputFill,
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
                 color: focused ? AppTheme.cyan : AppTheme.inputBorder,
-                width: focused ? 1.2 : 0.8,
+                width: focused ? 1.0 : 0.8,
               ),
               boxShadow: focused
                   ? const <BoxShadow>[
-                      BoxShadow(color: AppTheme.glowFocus, blurRadius: 18),
+                      BoxShadow(
+                        color: AppTheme.glowFocus,
+                        blurRadius: 24,
+                        spreadRadius: -2,
+                      ),
                     ]
                   : null,
             ),
@@ -834,25 +836,25 @@ class _HeroLanding extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 640),
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(20, 24, 20, 16 + bottomInset),
+          padding: EdgeInsets.fromLTRB(20, 48, 20, 24 + bottomInset),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              const HmrAvatar(size: 92, glow: true),
-              const SizedBox(height: 22),
+              const HmrAvatar(size: 100, glow: true),
+              const SizedBox(height: 28),
               const Text(
                 AppStrings.heroTitle,
                 textAlign: TextAlign.center,
                 textDirection: TextDirection.rtl,
                 style: TextStyle(
                   fontFamily: AppTheme.fontFa,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 22,
                   height: 1.6,
                   color: AppTheme.textPrimary,
                 ),
               ),
-              const SizedBox(height: 26),
+              const SizedBox(height: 32),
               _Composer(
                 controller: controller,
                 focus: focus,
