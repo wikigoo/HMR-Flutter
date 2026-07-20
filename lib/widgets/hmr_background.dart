@@ -50,14 +50,17 @@ class _GlowBlob extends StatelessWidget {
       bottom: bottom,
       child: IgnorePointer(
         child: ImageFiltered(
-          imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+          imageFilter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
           child: Container(
             width: size,
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
-                colors: <Color>[color.withAlpha(opacity), const Color(0x00000000)],
+                colors: <Color>[
+                  color.withAlpha(opacity),
+                  const Color(0x00000000),
+                ],
               ),
             ),
           ),
