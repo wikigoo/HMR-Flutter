@@ -57,7 +57,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "ir.hmrbot.app"
+        applicationId = "com.wikigoo.hmrflutter"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
         versionCode = flutter.versionCode

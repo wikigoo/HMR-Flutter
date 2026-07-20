@@ -1,0 +1,5 @@
+- [ ] Fix UI syntax errors in `chat_screen.dart`
+- [ ] Fix duplicate arguments and parameters in `chat_bubble.dart`
+- [ ] Migrate `auth_provider.dart` to `google_sign_in` 7.2.0 API
+- [ ] Remove conflicting `auth_service.dart`
+- [ ] Verify fixes with `flutter analyze`

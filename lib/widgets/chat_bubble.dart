@@ -250,11 +250,7 @@ class _AiActionsState extends State<_AiActions> {
               child: const Padding(
                 padding: EdgeInsets.only(left: 4),
                 child: Text(
-<<<<<<< HEAD
-                  'کپی شد',
-=======
                   AppStrings.copiedInline,
->>>>>>> main
                   style: TextStyle(
                     fontFamily: AppTheme.fontFa,
                     fontSize: 10,
@@ -265,22 +261,14 @@ class _AiActionsState extends State<_AiActions> {
             ),
             _iconButton(
               icon: Icons.copy_rounded,
-<<<<<<< HEAD
-              label: 'کپی',
-=======
               label: AppStrings.copy,
->>>>>>> main
               onTap: _handleCopy,
             ),
             if (widget.onReport != null) ...<Widget>[
               const SizedBox(width: 2),
               _iconButton(
                 icon: Icons.outlined_flag,
-<<<<<<< HEAD
-                label: 'گزارش پاسخ نامناسب',
-=======
                 label: AppStrings.reportLabel,
->>>>>>> main
                 onTap: widget.onReport,
               ),
             ],

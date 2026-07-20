@@ -841,11 +841,7 @@ class _HeroLanding extends StatelessWidget {
               const HmrAvatar(size: 92, glow: true),
               const SizedBox(height: 22),
               const Text(
-<<<<<<< HEAD
-                'امروز چطور می‌تونم کمکتون کنم؟',
-=======
                 AppStrings.heroTitle,
->>>>>>> main
                 textAlign: TextAlign.center,
                 textDirection: TextDirection.rtl,
                 style: TextStyle(

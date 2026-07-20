@@ -1,15 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show PlatformException;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../l10n/app_strings.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
-
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   GoogleSignInAccount? _user;
   bool _isLoading = false;
   bool _initialized = false;
@@ -49,21 +47,16 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // signInSilently() defaults to `suppressErrors: true`, so any GIS/
-      // FedCM failure (e.g. the browser rejecting the One Tap prompt with a
-      // NetworkError because third-party sign-in prompts are blocked)
-      // resolves to `null` instead of throwing. This call is a one-shot,
-      // terminal attempt to restore a previous session — its result is never
-      // retried and never triggers another init()/render cycle, so a
-      // failing FedCM prompt cannot loop; the user just stays signed out
-      // until they use the sign-in button again.
-      _user = await _googleSignIn.signInSilently();
+      // 7.2.0: Singleton instance must be initialized once before any other calls.
+      await _googleSignIn.initialize();
+
+      // attemptLightweightAuthentication() replaces signInSilently() in 7.2.0.
+      // It handles FedCM/One Tap prompts with minimal interaction.
+      _user = await _googleSignIn.attemptLightweightAuthentication();
     } catch (e, st) {
-      // Defensive only: suppressErrors already swallows the realistic
-      // failure modes above. If something still slips through, fail
-      // silently and terminally — never surface it to the user, never retry.
+      // Defensive only: fail silently and terminally — never surface it to the user.
       _user = null;
-      debugPrint('AuthProvider.init: signInSilently failed: $e');
+      debugPrint('AuthProvider.init: initialization failed: $e');
       unawaited(Sentry.captureException(e, stackTrace: st));
     }
     _isLoading = false;
@@ -77,22 +70,21 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
+      // authenticate() replaces signIn() in 7.2.0 for interactive flows.
+      final GoogleSignInAccount account = await _googleSignIn.authenticate();
       _user = account;
-      // `signIn()` already converts a user-cancelled flow into a `null`
-      // result (it catches PlatformException(kSignInCanceledError)
-      // internally), so this branch is the correct place for that message.
-      _error = account == null ? AppStrings.signInCancelled : null;
+      _error = null;
       _isLoading = false;
       notifyListeners();
-      return account != null;
+      return true;
     } catch (e, st) {
       _isLoading = false;
-      // Do not blame "the internet" for every failure — that masked the
-      // real cause (a disabled People API) for a long time. Show a truthful
-      // generic message and keep the real exception visible for debugging.
-      _error = AppStrings.signInFailed;
-      final String code = e is PlatformException ? e.code : e.runtimeType.toString();
+      // GIS 7.2.0 throws GoogleSignInException for cancellation or failures.
+      final bool isCancel = e is GoogleSignInException &&
+          e.code == GoogleSignInExceptionCode.canceled;
+      _error = isCancel ? AppStrings.signInCancelled : AppStrings.signInFailed;
+      
+      final String code = e is GoogleSignInException ? e.code.name : e.runtimeType.toString();
       debugPrint('AuthProvider.signInWithGoogle failed ($code): $e');
       unawaited(Sentry.captureException(e, stackTrace: st));
       notifyListeners();
