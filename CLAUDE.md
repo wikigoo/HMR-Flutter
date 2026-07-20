@@ -14,7 +14,7 @@ Instructions for Claude Code and any AI coding assistant working in this reposit
 | AI backend | Flowise on a self-hosted VPS (`https://srv.hmrbot.com`) |
 | Auth | Google Sign-In via **Google Identity Services** (`google_sign_in` `^6.2.1`) — Google Cloud project **`hmrbot-app` (`326113602877`)**. The former project `ir-hmrbot-app` (`829078792642`) was deleted 2026-07-20; nothing may reference it. **No Firebase Auth** — this repo has no `firebase_auth`/`firebase_core` dependency (a `google-services.json` being present does not imply otherwise). |
 | Package id | `com.hmrbot` (renamed from `ir.hmrbot.app` on 2026-07-20; the old id is retired) |
-| Storage | SQLite (messages) + SharedPreferences (conversation index) — 100 % on-device, no sync |
+| Storage | SQLite (messages) + SharedPreferences (conversation index) — the conversation **list** is 100 % on-device with no sync backend. Signed-in users do get server-side Flowise **memory** continuity (invariant 5) — that is not list sync. |
 | Locale | Persian (Farsi), RTL, Jalali (Shamsi) calendar |
 
 ---
@@ -248,11 +248,23 @@ After every code change, before committing:
 
 ## Auth notes
 
-Auth is Android-only. `hmrbot.com/ai` (the former Flutter web export) was decommissioned in favor of
-a native Astro+React chat UI in `HMR-Astro`; the `build-web.yml` CI workflow and the `kIsWeb` web
-sign-in path (GIS `renderButton`, first-party session cookie via `/api/auth/session|login|logout`)
-were removed from this repo accordingly. `AuthProvider` now has a single identity source (`_user`,
-from `google_sign_in`'s own `signIn()`/`signInSilently()`) — no second, cookie-restored profile.
+`AuthProvider` has a single identity source (`_user`, from `google_sign_in`'s own
+`signIn()`/`signInSilently()`) — no second, cookie-restored profile. It picks the client id by
+platform: `clientId: kIsWeb ? _webClientId : _androidClientId`, both in project `326113602877`.
+
+**Auth is not Android-only, and `/ai` was not decommissioned.** An earlier version of this section
+said both; it described the 2026-07-18 window when `hmrbot.com/ai` was a native Astro+React chat UI
+in `HMR-Astro`. That was **reverted on 2026-07-19** — `/ai` serves this repo's Flutter web build
+again, routed via the `hmr-flutter-bot-proxy` → `hmr-flutter-bot` Cloudflare Workers (owner-confirmed
+2026-07-20). `web/` is a live target here, not dead weight. `HMR-Astro`'s GIS + first-party-JWT flow
+is the orphaned one. See `HMR-Ops/FACTS.md` → "`/ai` chat" for the full history.
+
+Sign-in status by platform:
+
+- **Android** — blocked until the new SHA-1 is registered (see Pending items).
+- **Web** — depends on `326113602877-emaib…` having `https://hmrbot.com` as an authorised
+  JavaScript origin in the new project. Unverified since the project change; worth checking
+  alongside the Android OAuth client.
 
 ---
 
