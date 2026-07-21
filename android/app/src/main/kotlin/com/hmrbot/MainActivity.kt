@@ -1,4 +1,4 @@
-package ir.hmrbot.app
+package com.hmrbot
 
 import io.flutter.embedding.android.FlutterActivity
 
