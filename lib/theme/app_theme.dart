@@ -45,6 +45,10 @@ class AppTheme {
   static const Color bubbleAiFill = Color(0x8A1E293B); // slate @ ~54%
   static const Color bubbleAiBorder = Color(0x1FFFFFFF); // white @ ~12%
   static const Color avatarCore = Color(0xFF102030); // solid disc behind logo
+  // Redesigned avatar: flat disc + thin cyan hairline + subtle glow (no ring).
+  static const Color avatarDisc = Color(0xFF0B1430);
+  static const Color avatarHairline = Color(0x5900D4FF); // cyan @ ~35%
+  static const Color avatarGlow = Color(0x4700D4FF); // cyan @ ~28%
   static const Color inputFill = Color(0x0DFFFFFF); // white @ ~5%
   static const Color inputBorder = Color(0x24FFFFFF); // white @ ~14%
   static const Color ghostBorder = Color(0x24FFFFFF);

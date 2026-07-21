@@ -13,6 +13,7 @@ import '../providers/conversations_provider.dart';
 import '../repositories/chat_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/google_mark.dart';
 import '../widgets/hmr_avatar.dart';
 import '../widgets/hmr_background.dart';
 import 'chat_screen.dart';
@@ -94,6 +95,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
         onNewChat: _newConversation,
         onSearch: (String q) =>
             context.read<ConversationsProvider>().search(q),
+        onOpenConversation: _openConversation,
       ),
       body: Stack(
         children: <Widget>[
@@ -495,17 +497,26 @@ class _SidebarSearch extends StatelessWidget {
 }
 
 class _Sidebar extends StatelessWidget {
-  const _Sidebar({required this.onNewChat, required this.onSearch});
+  const _Sidebar({
+    required this.onNewChat,
+    required this.onSearch,
+    required this.onOpenConversation,
+  });
 
   /// Starts a new conversation — same entry point as the list screen's FAB.
   final VoidCallback onNewChat;
 
-  /// Live query for the conversations list behind the drawer.
+  /// Live query for the conversations list (shared with the screen behind).
   final ValueChanged<String> onSearch;
+
+  /// Opens a past conversation tapped in the in-drawer history list.
+  final ValueChanged<ConversationModel> onOpenConversation;
 
   @override
   Widget build(BuildContext context) {
     final AuthProvider auth = context.watch<AuthProvider>();
+    final List<ConversationModel> history =
+        context.watch<ConversationsProvider>().filtered;
     return Drawer(
       width: 304,
       backgroundColor: AppTheme.sidebarFill,
@@ -540,15 +551,48 @@ class _Sidebar extends StatelessWidget {
               const SizedBox(height: 14),
               _SidebarSearch(onChanged: onSearch),
               const SizedBox(height: 22),
-              _AccountCard(auth: auth),
-              const SizedBox(height: 22),
               const Padding(
-                padding: EdgeInsets.only(right: 4, bottom: 6),
+                padding: EdgeInsets.only(right: 4, bottom: 2),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Text(AppStrings.moreSection, style: AppTheme.sectionLabel),
+                  child:
+                      Text(AppStrings.chatHistory, style: AppTheme.sectionLabel),
                 ),
               ),
+              // Chat history lives inside the drawer now; it takes the flexible
+              // middle so the bottom menu + account button stay pinned below.
+              Expanded(
+                child: history.isEmpty
+                    ? const Align(
+                        alignment: Alignment.topRight,
+                        child: Padding(
+                          padding: EdgeInsets.only(right: 4, top: 12),
+                          child: Text(
+                            AppStrings.emptyHistorySidebar,
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              fontFamily: AppTheme.fontFa,
+                              fontFamilyFallback: AppTheme.faFallback,
+                              fontSize: 13,
+                              height: 1.7,
+                              color: AppTheme.timeMuted,
+                            ),
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(top: 6),
+                        itemCount: history.length,
+                        itemBuilder: (_, int i) => _SidebarHistoryRow(
+                          conv: history[i],
+                          onTap: () {
+                            Navigator.pop(context);
+                            onOpenConversation(history[i]);
+                          },
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 8),
               _DrawerTile(
                 icon: Icons.download_rounded,
                 label: AppStrings.downloadApp,
@@ -587,59 +631,17 @@ class _Sidebar extends StatelessWidget {
                   );
                 },
               ),
-              const Spacer(),
-              if (auth.isSignedIn) ...<Widget>[
-                _DrawerTile(
-                  icon: Icons.logout_rounded,
-                  label: AppStrings.signOut,
-                  danger: false,
-                  onTap: () {
-                    context.read<AuthProvider>().signOut();
-                    Navigator.pop(context);
-                  },
-                ),
-                _DrawerTile(
-                  icon: Icons.delete_forever_rounded,
-                  label: AppStrings.deleteAccount,
-                  danger: true,
-                  onTap: () async {
-                    final ConversationsProvider convs =
-                        context.read<ConversationsProvider>();
-                    final AuthProvider authP = context.read<AuthProvider>();
-                    final NavigatorState nav = Navigator.of(context);
-                    final bool? ok = await showDialog<bool>(
-                      context: context,
-                      builder: (_) => const ConfirmDialog(
-                        title: AppStrings.deleteAccount,
-                        body: AppStrings.deleteAccountBody,
-                        confirmLabel: AppStrings.deleteAccount,
-                      ),
-                    );
-                    if (!(ok ?? false)) return;
-                    await convs.deleteAllConversations();
-                    await authP.signOut();
-                    nav.pop();
-                    await launchUrl(
-                      Uri(
-                        scheme: 'mailto',
-                        path: 'support@hmrbot.com',
-                        queryParameters: <String, String>{
-                          'subject': 'Account Deletion Request — HMR',
-                          'body':
-                              'Please delete my HMR account and all associated data.',
-                        },
-                      ),
-                      mode: LaunchMode.externalApplication,
-                    );
-                  },
-                ),
-              ],
-              const SizedBox(height: 6),
+              const SizedBox(height: 14),
+              // One account control for every state: guest → sign in; signed-in
+              // → account row that opens a sheet with sign-out + delete-account.
+              _SidebarAccountButton(auth: auth),
+              const SizedBox(height: 10),
               const Center(
                 child: Text(
                   AppStrings.appVersionLabel,
                   style: TextStyle(
-                    fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
+                    fontFamily: AppTheme.fontFa,
+                    fontFamilyFallback: AppTheme.faFallback,
                     fontSize: 10.5,
                     color: AppTheme.timeMuted,
                   ),
@@ -653,143 +655,188 @@ class _Sidebar extends StatelessWidget {
   }
 }
 
-/// Guest → Google CTA; signed-in → profile card.
-class _AccountCard extends StatelessWidget {
-  const _AccountCard({required this.auth});
+/// Single bottom-of-sidebar account control. Guest → a "ورود با گوگل" button;
+/// signed-in → a glass row (flat avatar + name) that opens a sheet with
+/// sign-out and delete-account. Delete-account is kept behind this one control
+/// so Google Play's in-app account-deletion requirement is still met.
+class _SidebarAccountButton extends StatelessWidget {
+  const _SidebarAccountButton({required this.auth});
 
   final AuthProvider auth;
 
   @override
   Widget build(BuildContext context) {
     if (auth.isGuest) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: <Color>[Color(0x332F6BFF), Color(0x1A00D4FF)],
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: auth.isLoading
+            ? null
+            : () async {
+                final bool ok =
+                    await context.read<AuthProvider>().signInWithGoogle();
+                if (ok && context.mounted) Navigator.pop(context);
+              },
+        child: Container(
+          height: 52,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppTheme.glassFill,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.chipBorder, width: 0.8),
+            boxShadow: AppTheme.ringGlow,
           ),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppTheme.chipBorder, width: 0.8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            const Text(
-              AppStrings.createAccountTitle,
-              textAlign: TextAlign.right,
-              style: AppTheme.tileTitle,
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              AppStrings.createAccountBody,
-              textAlign: TextAlign.right,
-              style: AppTheme.tilePreview,
-            ),
-            const SizedBox(height: 14),
-            GestureDetector(
-              onTap: auth.isLoading
-                  ? null
-                  : () async {
-                      final bool ok = await context.read<AuthProvider>().signInWithGoogle();
-                      if (ok && context.mounted) Navigator.pop(context);
-                    },
-              child: Container(
-                height: 46,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  gradient: AppTheme.neon,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: AppTheme.ringGlow,
-                ),
-                child: auth.isLoading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-                      )
-                    : const Text(
-                        AppStrings.signInWithGoogle,
-                        style: TextStyle(
-                          fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+          child: auth.isLoading
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2.4, color: Colors.white),
+                )
+              : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      AppStrings.signInWithGoogle,
+                      style: TextStyle(
+                        fontFamily: AppTheme.fontFa,
+                        fontFamilyFallback: AppTheme.faFallback,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
                       ),
-              ),
-            ),
-            if (auth.error != null) ...<Widget>[
-              const SizedBox(height: 8),
-              Text(
-                auth.error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
-                  fontSize: 12,
-                  color: Color(0xFFFF8597),
+                    ),
+                    SizedBox(width: 10),
+                    GoogleMark(size: 18),
+                  ],
                 ),
-              ),
-            ],
-          ],
         ),
       );
     }
 
-    // Signed-in: profile row
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppTheme.glassFill,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.glassBorder, width: 0.8),
-      ),
-      child: Row(
-        children: <Widget>[
-          _avatarWidget(auth),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                Text(
-                  auth.displayName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTheme.tileTitle,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  auth.email,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTheme.tileMeta,
-                ),
-              ],
+    // Signed-in: one account row → sheet with sign-out + delete-account.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _showAccountSheet(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.glassFill,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.glassBorder, width: 0.8),
+        ),
+        child: Row(
+          children: <Widget>[
+            _accountAvatar(auth),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  Text(
+                    auth.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTheme.tileTitle,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    auth.email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTheme.tileMeta,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 6),
+            const Icon(Icons.more_horiz_rounded,
+                size: 20, color: AppTheme.textSecondary),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _avatarWidget(AuthProvider auth) {
+  void _showAccountSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppTheme.sidebarFill,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext sheetCtx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _DrawerTile(
+                  icon: Icons.logout_rounded,
+                  label: AppStrings.signOut,
+                  onTap: () {
+                    Navigator.pop(sheetCtx);
+                    context.read<AuthProvider>().signOut();
+                    Navigator.pop(context); // close drawer
+                  },
+                ),
+                _DrawerTile(
+                  icon: Icons.delete_forever_rounded,
+                  label: AppStrings.deleteAccount,
+                  danger: true,
+                  onTap: () {
+                    Navigator.pop(sheetCtx);
+                    _confirmDeleteAccount(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final ConversationsProvider convs = context.read<ConversationsProvider>();
+    final AuthProvider authP = context.read<AuthProvider>();
+    final NavigatorState nav = Navigator.of(context);
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => const ConfirmDialog(
+        title: AppStrings.deleteAccount,
+        body: AppStrings.deleteAccountBody,
+        confirmLabel: AppStrings.deleteAccount,
+      ),
+    );
+    if (!(ok ?? false)) return;
+    await convs.deleteAllConversations();
+    await authP.signOut();
+    nav.pop(); // close drawer
+    await launchUrl(
+      Uri(
+        scheme: 'mailto',
+        path: 'support@hmrbot.com',
+        queryParameters: <String, String>{
+          'subject': 'Account Deletion Request — HMR',
+          'body': 'Please delete my HMR account and all associated data.',
+        },
+      ),
+      mode: LaunchMode.externalApplication,
+    );
+  }
+
+  Widget _accountAvatar(AuthProvider auth) {
     if (auth.photoUrl != null) {
       return Container(
-        width: 46,
-        height: 46,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: AppTheme.neon,
-          boxShadow: AppTheme.ringGlow,
-        ),
-        child: ClipOval(
-          child: Image.network(
-            auth.photoUrl!,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _initialAvatar(auth),
-          ),
+        width: 40,
+        height: 40,
+        clipBehavior: Clip.antiAlias,
+        decoration: _discDecoration,
+        child: Image.network(
+          auth.photoUrl!,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _initialAvatar(auth),
         ),
       );
     }
@@ -798,21 +845,68 @@ class _AccountCard extends StatelessWidget {
 
   Widget _initialAvatar(AuthProvider auth) {
     return Container(
-      width: 46,
-      height: 46,
+      width: 40,
+      height: 40,
       alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: AppTheme.neon,
-        boxShadow: AppTheme.ringGlow,
-      ),
+      decoration: _discDecoration,
       child: Text(
         auth.photoInitial,
         style: const TextStyle(
-          fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
-          fontSize: 18,
+          fontFamily: AppTheme.fontFa,
+          fontFamilyFallback: AppTheme.faFallback,
+          fontSize: 16,
           fontWeight: FontWeight.w700,
-          color: Colors.white,
+          color: AppTheme.textPrimary,
+        ),
+      ),
+    );
+  }
+
+  /// Flat disc + cyan hairline + subtle glow — no gradient ring.
+  static final BoxDecoration _discDecoration = BoxDecoration(
+    shape: BoxShape.circle,
+    color: AppTheme.avatarDisc,
+    border: Border.all(color: AppTheme.avatarHairline, width: 1),
+    boxShadow: const <BoxShadow>[
+      BoxShadow(color: AppTheme.avatarGlow, blurRadius: 13),
+    ],
+  );
+}
+
+/// Compact in-drawer history row: chat icon + title, tap to open.
+class _SidebarHistoryRow extends StatelessWidget {
+  const _SidebarHistoryRow({required this.conv, required this.onTap});
+
+  final ConversationModel conv;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 2),
+        child: Row(
+          children: <Widget>[
+            const Icon(Icons.chat_bubble_outline_rounded,
+                size: 18, color: AppTheme.cyan),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                conv.title,
+                textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: AppTheme.fontFa,
+                  fontFamilyFallback: AppTheme.faFallback,
+                  fontSize: 13.5,
+                  color: AppTheme.textBody,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
