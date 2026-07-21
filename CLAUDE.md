@@ -23,7 +23,7 @@ Instructions for Claude Code and any AI coding assistant working in this reposit
 
 These rules must **never** be broken regardless of the task at hand.
 
-1. **Language and direction:** The UI is Persian (Farsi), RTL, Vazirmatn font. Never change language, text direction, or font family.
+1. **Language and direction:** The UI is Persian (Farsi), RTL. Persian text renders in **Vazirmatn**; Latin text and the "HMR" wordmark render in **Rubik** — both bundled locally with per-glyph `fontFamilyFallback` (Rubik ⇄ Vazirmatn), never fetched at runtime. Never change the language or text direction, and never render Persian in anything but Vazirmatn.
 2. **Branding:** Dark navy/cyan color palette defined in `AppTheme`. Do not alter brand colors or the HMR orb widget.
 3. **Five pillars:** Phone · Laptop · Tablet · Earphones · Accessories — do not remove, rename, or reorder them.
 4. **Price disclaimer:** The app must never present a specific price as definitive. Users must always be prompted to verify prices at the point of sale. The `PriceDisclaimer` widget implements this contract.
@@ -66,7 +66,9 @@ lib/
 │                                    + drawer; wide → persistent two-pane sidebar
 │   ├── conversations_screen.dart    History list, sidebar drawer (new-chat row,
 │                                    search wired to ConversationsProvider.search,
-│                                    account card, links), new-chat FAB,
+│                                    links, in-drawer chat history, one account
+│                                    button [guest login / signed-in → sheet]),
+│                                    new-chat FAB,
 │                                    ghost-conversation cleanup on back-nav
 │   └── chat_screen.dart             Chat surface, composer, clear-history confirm,
 │                                    five-pillar empty state + PriceDisclaimer
@@ -82,7 +84,8 @@ lib/
 │   ├── chat_bubble.dart             AI bubble (Markdown + error state) + user bubble
 │   ├── confirm_dialog.dart          Reusable dark-glass confirmation dialog (title/body/label)
 │   ├── price_disclaimer.dart        Amber glassmorphism disclaimer strip
-│   ├── hmr_avatar.dart              Animated HMR orb
+│   ├── google_mark.dart            Shared 4-colour Google "G" (welcome + sidebar sign-in)
+│   ├── hmr_avatar.dart              HMR orb — flat disc + cyan hairline (no gradient ring)
 │   └── hmr_background.dart         Glassmorphism radial-gradient background
 └── utils/
     └── jalali.dart                  Gregorian → Shamsi date formatting
@@ -139,8 +142,8 @@ All colors are in `AppTheme` as `Color(0xAARRGGBB)` literals. **Never** use `.wi
 
 ### Fonts
 
-- `Vazirmatn` — all Persian UI text (`AppTheme.fontFa`)
-- `SpaceGrotesk` — Latin brand text, "HMR" wordmark (`AppTheme.fontLatin`), single variable-font file
+- `Vazirmatn` — all Persian UI text (`AppTheme.fontFa`); leads Persian styles, with `Rubik` as `fontFamilyFallback` so embedded Latin (iPhone, Galaxy A54, numerals) still renders in Rubik.
+- `Rubik` — Latin brand text / the "HMR" wordmark (`AppTheme.fontLatin`); bundled static weights 400/500/600/700/800, with `Vazirmatn` as fallback. Replaced `SpaceGrotesk` on 2026-07-21. **Bundled locally, never fetched at runtime** — `google_fonts` was rejected because the Google CDN is unreliable in Iran.
 
 ### Performance note on bubbles
 
