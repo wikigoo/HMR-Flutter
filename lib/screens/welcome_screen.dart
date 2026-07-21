@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,6 +6,7 @@ import '../l10n/app_strings.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/google_mark.dart';
+import '../widgets/google_signin_web_button.dart';
 import '../widgets/hmr_avatar.dart';
 import '../widgets/hmr_background.dart';
 
@@ -69,10 +71,18 @@ class WelcomeScreen extends StatelessWidget {
                           style: AppTheme.welcomeBody,
                         ),
                         const SizedBox(height: 28),
-                        _GoogleButton(
-                          busy: busy,
-                          onTap: busy ? null : () => _google(context),
-                        ),
+                        // Web: authenticate() is unsupported there
+                        // (google_sign_in_web's supportsAuthenticate() is
+                        // always false) — the GIS-rendered button is the
+                        // only way to sign in. Native keeps the app's own
+                        // button + signInWithGoogle().
+                        if (kIsWeb)
+                          renderGoogleSignInButton()
+                        else
+                          _GoogleButton(
+                            busy: busy,
+                            onTap: busy ? null : () => _google(context),
+                          ),
                         const SizedBox(height: 12),
                         _GuestButton(onTap: busy ? null : onDone),
                         const SizedBox(height: 18),

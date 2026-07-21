@@ -21,6 +21,11 @@ dependencies:
   sqflite_common_ffi_web: ^1.1.2
   path: ^1.9.0
   google_sign_in: ^7.2.0
+  # GIS renderButton widget for web (authenticate() is unsupported there —
+  # google_sign_in_web.supportsAuthenticate() is always false). Already
+  # resolved transitively via google_sign_in; listed directly because
+  # lib/widgets/google_signin_web_button_web.dart imports it.
+  google_sign_in_web: ^1.1.3
   url_launcher: ^6.3.0
   uuid: ^4.5.1
   connectivity_plus: ^7.3.0

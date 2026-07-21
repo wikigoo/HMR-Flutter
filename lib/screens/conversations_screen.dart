@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,6 +15,7 @@ import '../repositories/chat_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/google_mark.dart';
+import '../widgets/google_signin_web_button.dart';
 import '../widgets/hmr_avatar.dart';
 import '../widgets/hmr_background.dart';
 import 'chat_screen.dart';
@@ -667,6 +669,13 @@ class _SidebarAccountButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (auth.isGuest) {
+      // Web: authenticate() is unsupported there (google_sign_in_web's
+      // supportsAuthenticate() is always false) — the GIS-rendered button is
+      // the only way to sign in. Native keeps the app's own button + tap
+      // handler, which can pop the sheet as soon as it resolves.
+      if (kIsWeb) {
+        return Center(child: renderGoogleSignInButton());
+      }
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: auth.isLoading

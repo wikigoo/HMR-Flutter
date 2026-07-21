@@ -19,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   // `_initialized`/`_initializing`, relying on AuthProvider itself being a
   // singleton (see the single ChangeNotifierProvider<AuthProvider> in main.dart).
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _authEventSub;
 
   GoogleSignInAccount? _user;
   bool _isLoading = false;
@@ -62,6 +63,19 @@ class AuthProvider extends ChangeNotifier {
         clientId: kIsWeb ? _webClientId : null,
         serverClientId: kIsWeb ? null : _webClientId,
       );
+      // On web, sign-in happens by clicking the GIS-rendered button (a real
+      // DOM element outside Flutter's control, see
+      // widgets/google_signin_web_button_web.dart) — that flow can only ever
+      // report success through this stream, never through a Future return
+      // value. Subscribing here makes the stream the single source of truth
+      // for `_user` on every platform, not just a web-only special case.
+      _authEventSub = _googleSignIn.authenticationEvents.listen(
+        _handleAuthenticationEvent,
+        onError: (Object e, StackTrace st) {
+          debugPrint('AuthProvider: authenticationEvents error: $e');
+          unawaited(Sentry.captureException(e, stackTrace: st));
+        },
+      );
       _user = await _googleSignIn.attemptLightweightAuthentication();
     } catch (e, st) {
       _user = null;
@@ -71,6 +85,18 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     _initialized = true;
     _initializing = false;
+    notifyListeners();
+  }
+
+  void _handleAuthenticationEvent(GoogleSignInAuthenticationEvent event) {
+    switch (event) {
+      case GoogleSignInAuthenticationEventSignIn():
+        _user = event.user;
+      case GoogleSignInAuthenticationEventSignOut():
+        _user = null;
+    }
+    _isLoading = false;
+    _error = null;
     notifyListeners();
   }
 
@@ -112,5 +138,11 @@ class AuthProvider extends ChangeNotifier {
     _user = null;
     _error = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    unawaited(_authEventSub?.cancel());
+    super.dispose();
   }
 }
