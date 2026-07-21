@@ -8,13 +8,23 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import '../l10n/app_strings.dart';
 
 class AuthProvider extends ChangeNotifier {
-  // Client IDs for different platforms
-  static const String _webClientId = '326113602877-emaibubf14sht9oij805s31m3eecoifu.apps.googleusercontent.com';
-  static const String _androidClientId = '326113602877-1t3ade8lg2bjur7ig159od63qinie61o.apps.googleusercontent.com';
+  /// The **web** OAuth client (project `hmrbot-app` / 326113602877). This is the
+  /// only client id the app hard-codes: the Android client is never named here —
+  /// it is matched by Google from `com.hmrbot` + the signing SHA-1, and shipped
+  /// in `android/app/google-services.json` (gitignored).
+  static const String _webClientId =
+      '326113602877-emaibubf14sht9oij805s31m3eecoifu.apps.googleusercontent.com';
 
+  // Web must be given the *web* OAuth client id explicitly. Android must NOT be
+  // given a clientId at all — the plugin resolves the Android OAuth client from
+  // the package name (`com.hmrbot`) + the signing SHA-1 registered in Google
+  // Cloud, and passing one here makes sign-in fail with ApiException 10
+  // (DEVELOPER_ERROR). `serverClientId` is the *web* client on Android; it is
+  // what an ID token would be minted for, and is unsupported on web.
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: kIsWeb ? _webClientId : _androidClientId,
-    scopes: ['email', 'profile'],
+    clientId: kIsWeb ? _webClientId : null,
+    serverClientId: kIsWeb ? null : _webClientId,
+    scopes: <String>['email', 'profile'],
   );
 
   GoogleSignInAccount? _user;
