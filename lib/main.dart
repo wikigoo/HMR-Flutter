@@ -202,6 +202,18 @@ class _FirstRunState extends State<_FirstRun> {
   void initState() {
     super.initState();
     _load();
+    // google_sign_in v7 requires initialize() to complete before anything
+    // else touches GoogleSignIn — including rendering the web GIS button,
+    // which stays stuck on its own internal "Getting ready" placeholder
+    // until then. WelcomeScreen (the very first thing a new session sees)
+    // has no initState of its own to hang this off, so it happens here at
+    // the actual root instead. HomeShell/ConversationsScreen also call
+    // auth.init(), guarded by _initialized, in case a session skips
+    // straight past the welcome panel.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<AuthProvider>().init();
+    });
   }
 
   Future<void> _load() async {
