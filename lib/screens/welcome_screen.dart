@@ -77,7 +77,7 @@ class WelcomeScreen extends StatelessWidget {
                         // only way to sign in. Native keeps the app's own
                         // button + signInWithGoogle().
                         if (kIsWeb)
-                          renderGoogleSignInButton()
+                          Center(child: renderGoogleSignInButton())
                         else
                           _GoogleButton(
                             busy: busy,
