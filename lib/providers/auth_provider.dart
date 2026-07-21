@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show PlatformException;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -15,17 +14,11 @@ class AuthProvider extends ChangeNotifier {
   static const String _webClientId =
       '326113602877-emaibubf14sht9oij805s31m3eecoifu.apps.googleusercontent.com';
 
-  // Web must be given the *web* OAuth client id explicitly. Android must NOT be
-  // given a clientId at all — the plugin resolves the Android OAuth client from
-  // the package name (`com.hmrbot`) + the signing SHA-1 registered in Google
-  // Cloud, and passing one here makes sign-in fail with ApiException 10
-  // (DEVELOPER_ERROR). `serverClientId` is the *web* client on Android; it is
-  // what an ID token would be minted for, and is unsupported on web.
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: kIsWeb ? _webClientId : null,
-    serverClientId: kIsWeb ? null : _webClientId,
-    scopes: <String>['email', 'profile'],
-  );
+  // google_sign_in v7+ is a singleton: `initialize()` must be awaited exactly
+  // once before any other member is used. `init()` below guards that via
+  // `_initialized`/`_initializing`, relying on AuthProvider itself being a
+  // singleton (see the single ChangeNotifierProvider<AuthProvider> in main.dart).
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   GoogleSignInAccount? _user;
   bool _isLoading = false;
@@ -58,10 +51,21 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _user = await _googleSignIn.signInSilently();
+      // Web must be given the *web* OAuth client id explicitly. Android must
+      // NOT be given a clientId at all — the plugin resolves the Android
+      // OAuth client from the package name (`com.hmrbot`) + the signing
+      // SHA-1 registered in Google Cloud, and passing one here makes sign-in
+      // fail with ApiException 10 (DEVELOPER_ERROR). `serverClientId` is the
+      // *web* client on Android; it is what an ID token would be minted for,
+      // and is unsupported on web.
+      await _googleSignIn.initialize(
+        clientId: kIsWeb ? _webClientId : null,
+        serverClientId: kIsWeb ? null : _webClientId,
+      );
+      _user = await _googleSignIn.attemptLightweightAuthentication();
     } catch (e, st) {
       _user = null;
-      debugPrint('AuthProvider.init: signInSilently failed: $e');
+      debugPrint('AuthProvider.init: sign-in restore failed: $e');
       unawaited(Sentry.captureException(e, stackTrace: st));
     }
     _isLoading = false;
@@ -75,17 +79,26 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
+      final GoogleSignInAccount account = await _googleSignIn.authenticate();
       _user = account;
-      _error = account == null ? AppStrings.signInCancelled : null;
       _isLoading = false;
       notifyListeners();
-      return account != null;
+      return true;
+    } on GoogleSignInException catch (e, st) {
+      _isLoading = false;
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        _error = AppStrings.signInCancelled;
+      } else {
+        _error = AppStrings.signInFailed;
+        unawaited(Sentry.captureException(e, stackTrace: st));
+      }
+      debugPrint('AuthProvider.signInWithGoogle failed (${e.code}): $e');
+      notifyListeners();
+      return false;
     } catch (e, st) {
       _isLoading = false;
       _error = AppStrings.signInFailed;
-      final String code = e is PlatformException ? e.code : e.runtimeType.toString();
-      debugPrint('AuthProvider.signInWithGoogle failed ($code): $e');
+      debugPrint('AuthProvider.signInWithGoogle failed: $e');
       unawaited(Sentry.captureException(e, stackTrace: st));
       notifyListeners();
       return false;
