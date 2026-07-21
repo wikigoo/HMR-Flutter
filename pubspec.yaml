@@ -61,9 +61,21 @@ flutter:
     - assets/images/splash_logo.png
 
   fonts:
-    - family: SpaceGrotesk
+    # Latin / display (HMR wordmark, embedded English & numerals). Bundled
+    # locally — never fetched at runtime (Google Fonts CDN is unreliable in Iran).
+    # Rubik has no Persian glyphs; Persian falls back to Vazirmatn per-glyph.
+    - family: Rubik
       fonts:
-        - asset: assets/fonts/SpaceGrotesk-VF.ttf
+        - asset: assets/fonts/Rubik-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Rubik-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Rubik-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Rubik-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Rubik-ExtraBold.ttf
+          weight: 800
 
     - family: Vazirmatn
       fonts:

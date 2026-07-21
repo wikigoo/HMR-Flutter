@@ -109,7 +109,7 @@ class ChatBubble extends StatelessWidget {
           Text(
             message.text,
             style: const TextStyle(
-              fontFamily: AppTheme.fontFa,
+              fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
               fontSize: 14,
               height: 1.7,
               color: Color(0xFFFF8597),
@@ -131,7 +131,7 @@ class ChatBubble extends StatelessWidget {
             child: const Text(
               AppStrings.retry,
               style: TextStyle(
-                fontFamily: AppTheme.fontFa,
+                fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                 fontSize: 13,
                 color: Color(0xFFFF8597),
                 fontWeight: FontWeight.w600,
@@ -252,7 +252,7 @@ class _AiActionsState extends State<_AiActions> {
                 child: Text(
                   AppStrings.copiedInline,
                   style: TextStyle(
-                    fontFamily: AppTheme.fontFa,
+                    fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                     fontSize: 10,
                     color: Color(0xFF34E0A1),
                   ),

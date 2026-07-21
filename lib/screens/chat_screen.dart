@@ -96,7 +96,7 @@ class _ChatScreenState extends State<ChatScreen> {
         AppStrings.messageCopied,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontFamily: AppTheme.fontFa,
+          fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
           color: AppTheme.textBody,
           fontSize: 12.5,
         ),
@@ -153,7 +153,7 @@ class _ChatScreenState extends State<ChatScreen> {
         message,
         textAlign: TextAlign.center,
         style: const TextStyle(
-          fontFamily: AppTheme.fontFa,
+          fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
           color: AppTheme.textBody,
           fontSize: 12.5,
         ),
@@ -454,7 +454,7 @@ class _CategoryTile extends StatelessWidget {
                     card.title,
                     textDirection: TextDirection.rtl,
                     style: const TextStyle(
-                      fontFamily: AppTheme.fontFa,
+                      fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                       fontSize: 14.5,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.textPrimary,
@@ -734,7 +734,7 @@ class _Composer extends StatelessWidget {
                     textAlign: TextAlign.start,
                     textInputAction: TextInputAction.newline,
                     style: const TextStyle(
-                      fontFamily: AppTheme.fontFa,
+                      fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                       fontSize: 14,
                       height: 1.6,
                       color: AppTheme.textPrimary,
@@ -749,7 +749,7 @@ class _Composer extends StatelessWidget {
                       hintText: hint,
                       hintTextDirection: TextDirection.rtl,
                       hintStyle: const TextStyle(
-                        fontFamily: AppTheme.fontFa,
+                        fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                         fontSize: 14,
                         color: AppTheme.textSecondary,
                       ),
@@ -847,7 +847,7 @@ class _HeroLanding extends StatelessWidget {
                 textAlign: TextAlign.center,
                 textDirection: TextDirection.rtl,
                 style: TextStyle(
-                  fontFamily: AppTheme.fontFa,
+                  fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                   fontWeight: FontWeight.w800,
                   fontSize: 22,
                   height: 1.6,

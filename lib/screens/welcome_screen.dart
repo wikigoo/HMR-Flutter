@@ -79,7 +79,7 @@ class WelcomeScreen extends StatelessWidget {
                           AppStrings.welcomeTerms,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontFamily: AppTheme.fontFa,
+                            fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                             fontSize: 11,
                             height: 1.7,
                             color: AppTheme.textSecondary,
@@ -172,7 +172,7 @@ class _GuestButton extends StatelessWidget {
           child: const Text(
             AppStrings.continueAsGuest,
             style: TextStyle(
-              fontFamily: AppTheme.fontFa,
+              fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
               fontSize: 14.5,
               fontWeight: FontWeight.w600,
               color: AppTheme.chipText,
