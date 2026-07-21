@@ -190,7 +190,7 @@ class _TopBar extends StatelessWidget {
               AppStrings.conversationsTitle,
               textAlign: TextAlign.right,
               style: TextStyle(
-                fontFamily: AppTheme.fontFa,
+                fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.textPrimary,
@@ -339,7 +339,7 @@ class _NewChatButton extends StatelessWidget {
               Text(
                 AppStrings.newConversation,
                 style: TextStyle(
-                  fontFamily: AppTheme.fontFa,
+                  fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                   fontSize: 14.5,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -370,7 +370,7 @@ class _EmptyConversations extends StatelessWidget {
           const Text(
             AppStrings.noConversationsTitle,
             style: TextStyle(
-              fontFamily: AppTheme.fontFa,
+              fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppTheme.textPrimary,
@@ -387,7 +387,7 @@ class _EmptyConversations extends StatelessWidget {
             child: const Text(
               AppStrings.newConversationPlus,
               style: TextStyle(
-                fontFamily: AppTheme.fontFa,
+                fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                 fontSize: 14,
                 color: AppTheme.cyan,
                 fontWeight: FontWeight.w600,
@@ -429,7 +429,7 @@ class _SidebarNewChat extends StatelessWidget {
                   AppStrings.newChatShort,
                   textAlign: TextAlign.right,
                   style: TextStyle(
-                    fontFamily: AppTheme.fontFa,
+                    fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                     fontSize: 15.5,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
@@ -472,7 +472,7 @@ class _SidebarSearch extends StatelessWidget {
               textAlign: TextAlign.right,
               textInputAction: TextInputAction.search,
               style: const TextStyle(
-                fontFamily: AppTheme.fontFa,
+                fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                 fontSize: 13.5,
                 color: AppTheme.textBody,
               ),
@@ -481,7 +481,7 @@ class _SidebarSearch extends StatelessWidget {
                 border: InputBorder.none,
                 hintText: AppStrings.searchHint,
                 hintStyle: TextStyle(
-                  fontFamily: AppTheme.fontFa,
+                  fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                   fontSize: 13.5,
                   color: AppTheme.textSecondary,
                 ),
@@ -639,7 +639,7 @@ class _Sidebar extends StatelessWidget {
                 child: Text(
                   AppStrings.appVersionLabel,
                   style: TextStyle(
-                    fontFamily: AppTheme.fontFa,
+                    fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                     fontSize: 10.5,
                     color: AppTheme.timeMuted,
                   ),
@@ -712,7 +712,7 @@ class _AccountCard extends StatelessWidget {
                     : const Text(
                         AppStrings.signInWithGoogle,
                         style: TextStyle(
-                          fontFamily: AppTheme.fontFa,
+                          fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -726,7 +726,7 @@ class _AccountCard extends StatelessWidget {
                 auth.error!,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontFamily: AppTheme.fontFa,
+                  fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                   fontSize: 12,
                   color: Color(0xFFFF8597),
                 ),
@@ -809,7 +809,7 @@ class _AccountCard extends StatelessWidget {
       child: Text(
         auth.photoInitial,
         style: const TextStyle(
-          fontFamily: AppTheme.fontFa,
+          fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
           fontSize: 18,
           fontWeight: FontWeight.w700,
           color: Colors.white,
@@ -849,7 +849,7 @@ class _DrawerTile extends StatelessWidget {
                 label,
                 textAlign: TextAlign.right,
                 style: TextStyle(
-                  fontFamily: AppTheme.fontFa,
+                  fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: tint,

@@ -90,11 +90,20 @@ class AppTheme {
   );
 
   // ── Typography ───────────────────────────────────────────────────
+  // Persian UI text leads with Vazirmatn (correct RTL metrics); Latin / the
+  // HMR wordmark leads with Rubik. Both are bundled locally (no runtime fetch —
+  // the Google Fonts CDN is unreliable in Iran). The fallback lists give
+  // per-glyph coverage the other way: Latin embedded in Persian (iPhone,
+  // Galaxy A54, numerals) renders in Rubik, and Persian in a Latin style falls
+  // back to Vazirmatn.
   static const String fontFa = 'Vazirmatn';
-  static const String fontLatin = 'SpaceGrotesk';
+  static const String fontLatin = 'Rubik';
+  static const List<String> faFallback = <String>['Rubik'];
+  static const List<String> latinFallback = <String>['Vazirmatn'];
 
   static const TextStyle appTitle = TextStyle(
     fontFamily: fontLatin,
+    fontFamilyFallback: latinFallback,
     fontWeight: FontWeight.w700,
     fontSize: 16.5,
     letterSpacing: 0.4,
@@ -103,12 +112,14 @@ class AppTheme {
 
   static const TextStyle subtitle = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 11.5,
     color: textSecondary,
   );
 
   static const TextStyle bodyAi = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 14,
     height: 1.85, // relaxed leading for long Persian responses
     color: textBody,
@@ -116,6 +127,7 @@ class AppTheme {
 
   static const TextStyle bodyUser = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 14,
     height: 1.7,
     color: textPrimary,
@@ -123,24 +135,28 @@ class AppTheme {
 
   static const TextStyle chip = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 12.5,
     color: chipText,
   );
 
   static const TextStyle timestampAi = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 10,
     color: timeMuted,
   );
 
   static const TextStyle timestampUser = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 10,
     color: timeOnUser,
   );
 
   static const TextStyle disclaimer = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 11,
     height: 1.5,
     color: amberText,
@@ -149,6 +165,7 @@ class AppTheme {
   // ── Empty-state / welcome ────────────────────────────────────────
   static const TextStyle welcomeBody = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 15,
     height: 1.9,
     color: textBody,
@@ -156,6 +173,7 @@ class AppTheme {
 
   static const TextStyle welcomeKicker = TextStyle(
     fontFamily: fontLatin,
+    fontFamilyFallback: latinFallback,
     fontWeight: FontWeight.w700,
     fontSize: 19,
     letterSpacing: 0.4,
@@ -165,6 +183,7 @@ class AppTheme {
   // ── Auth / login screen ──────────────────────────────────────────
   static const TextStyle display = TextStyle(
     fontFamily: fontLatin,
+    fontFamilyFallback: latinFallback,
     fontWeight: FontWeight.w700,
     fontSize: 30,
     letterSpacing: 0.6,
@@ -173,6 +192,7 @@ class AppTheme {
 
   static const TextStyle tagline = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 14,
     height: 1.9,
     color: textBody,
@@ -181,6 +201,7 @@ class AppTheme {
   // ── Conversations list ───────────────────────────────────────────
   static const TextStyle sectionLabel = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 12,
     letterSpacing: 0.3,
     fontWeight: FontWeight.w600,
@@ -189,6 +210,7 @@ class AppTheme {
 
   static const TextStyle tileTitle = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 14.5,
     fontWeight: FontWeight.w600,
     color: textPrimary,
@@ -196,6 +218,7 @@ class AppTheme {
 
   static const TextStyle tilePreview = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 12.5,
     height: 1.6,
     color: textSecondary,
@@ -203,12 +226,14 @@ class AppTheme {
 
   static const TextStyle tileMeta = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 10.5,
     color: timeMuted,
   );
 
   static const TextStyle ctaLabel = TextStyle(
     fontFamily: fontFa,
+    fontFamilyFallback: faFallback,
     fontSize: 14.5,
     fontWeight: FontWeight.w700,
     color: textPrimary,

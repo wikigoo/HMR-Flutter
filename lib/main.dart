@@ -107,6 +107,7 @@ class HmrApp extends StatelessWidget {
   static final ThemeData _theme = ThemeData(
     useMaterial3: true,
     fontFamily: AppTheme.fontFa,
+    fontFamilyFallback: AppTheme.faFallback,
     scaffoldBackgroundColor: AppTheme.navy950,
     colorScheme: const ColorScheme.dark(
       surface: AppTheme.navy950,
@@ -153,6 +154,7 @@ class _FriendlyErrorScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: AppTheme.fontFa,
+    fontFamilyFallback: AppTheme.faFallback,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
@@ -164,6 +166,7 @@ class _FriendlyErrorScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: AppTheme.fontFa,
+    fontFamilyFallback: AppTheme.faFallback,
                     fontSize: 14,
                     height: 1.7,
                     color: AppTheme.textSecondary,

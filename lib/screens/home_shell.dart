@@ -283,7 +283,7 @@ class _NewChatButton extends StatelessWidget {
               Text(
                 AppStrings.newChat,
                 style: TextStyle(
-                  fontFamily: AppTheme.fontFa,
+                  fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                   fontSize: 14.5,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -321,7 +321,7 @@ class _SearchField extends StatelessWidget {
               onChanged: (String q) =>
                   context.read<ConversationsProvider>().search(q),
               style: const TextStyle(
-                fontFamily: AppTheme.fontFa,
+                fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                 fontSize: 13,
                 color: AppTheme.textPrimary,
               ),
@@ -331,7 +331,7 @@ class _SearchField extends StatelessWidget {
                 hintText: AppStrings.searchHint,
                 hintTextDirection: TextDirection.rtl,
                 hintStyle: TextStyle(
-                  fontFamily: AppTheme.fontFa,
+                  fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                   fontSize: 13,
                   color: AppTheme.textSecondary,
                 ),
@@ -388,7 +388,7 @@ class _HistoryTile extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: AppTheme.fontFa,
+                  fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                   fontSize: 13.5,
                   fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                   color: active ? AppTheme.textPrimary : AppTheme.textBody,
@@ -516,7 +516,7 @@ class _SidebarAccount extends StatelessWidget {
                   Text(
                     AppStrings.signInWithGoogle,
                     style: TextStyle(
-                      fontFamily: AppTheme.fontFa,
+                      fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimary,
@@ -570,7 +570,7 @@ class _Avatar extends StatelessWidget {
       child: Text(
         auth.photoInitial,
         style: const TextStyle(
-          fontFamily: AppTheme.fontFa,
+          fontFamily: AppTheme.fontFa, fontFamilyFallback: AppTheme.faFallback,
           fontSize: 16,
           fontWeight: FontWeight.w700,
           color: Colors.white,
