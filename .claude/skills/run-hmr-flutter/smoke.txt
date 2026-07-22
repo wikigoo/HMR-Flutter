@@ -1,0 +1,19 @@
+# Guest path end-to-end: welcome -> chat -> send a message.
+# Run with --fresh so localStorage is cleared and the welcome screen shows.
+
+expect ورود به عنوان مهمان
+shot .claude/skills/run-hmr-flutter/shots/01-welcome.png
+
+click_until ورود به عنوان مهمان :: گفتگوی جدید
+
+type هر سوالی درباره موبایل دارید بپرسید :: یک گوشی خوب تا ۲۰ میلیون تومان پیشنهاد بده
+click ارسال پیام
+
+# The user's own bubble proves the message left the composer, whether or not
+# the Flowise call succeeds (it fails locally on CORS — see SKILL.md).
+expect یک گوشی خوب
+wait 6000
+
+shot .claude/skills/run-hmr-flutter/shots/02-chat.png
+tree
+net
