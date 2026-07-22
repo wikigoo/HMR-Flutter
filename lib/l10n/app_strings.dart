@@ -31,8 +31,8 @@ abstract final class AppStrings {
 
   // ── Welcome screen (skippable, first launch only) ────────────────────────
   static const String welcomePanelBody =
-      'مشاور هوشمند سخت‌افزار موبایل شما.\n'
-      'برای شروع وارد شو یا به‌عنوان مهمان ادامه بده.';
+      'HMR مشاور هوشمند موبایل شما.\n'
+      'برای شروع وارد شوید یا به عنوان مهمان ادامه دهید.';
   static const String continueAsGuest = 'ورود به عنوان مهمان';
   static const String welcomeTerms = 'با ادامه، قوانین و حریم خصوصی HMR را می‌پذیری.';
 

@@ -16,23 +16,44 @@ import '../widgets/hmr_background.dart';
 /// anonymously), so this screen is shown once, both buttons lead into the app,
 /// and a failed Google sign-in still continues as a guest rather than trapping
 /// the user behind a door that will not open.
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key, required this.onDone});
 
   /// Called once the user has chosen a path — signed in, or continuing as guest.
   final VoidCallback onDone;
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  bool _dismissed = false;
+
+  void _dismissOnce() {
+    if (_dismissed) return;
+    _dismissed = true;
+    widget.onDone();
+  }
 
   Future<void> _google(BuildContext context) async {
     final AuthProvider auth = context.read<AuthProvider>();
     await auth.signInWithGoogle();
     // Success or failure, the user still gets in — sign-in is optional and a
     // hard failure here must never be a dead end.
-    onDone();
+    _dismissOnce();
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool busy = context.watch<AuthProvider>().isLoading;
+    final AuthProvider auth = context.watch<AuthProvider>();
+    final bool busy = auth.isLoading;
+    // Web sign-in is a real GIS DOM button outside Flutter's tap handling —
+    // success only ever surfaces via AuthProvider.authenticationEvents
+    // (see auth_provider.dart), never through a Future here like the native
+    // button's onTap. Watch isSignedIn and dismiss once it flips true.
+    if (kIsWeb && auth.isSignedIn) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _dismissOnce());
+    }
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -84,7 +105,7 @@ class WelcomeScreen extends StatelessWidget {
                             onTap: busy ? null : () => _google(context),
                           ),
                         const SizedBox(height: 12),
-                        _GuestButton(onTap: busy ? null : onDone),
+                        _GuestButton(onTap: busy ? null : widget.onDone),
                         const SizedBox(height: 18),
                         const Text(
                           AppStrings.welcomeTerms,
