@@ -225,7 +225,7 @@ Signing is read from env vars in CI (`HMR_KEY_ALIAS`, `HMR_KEY_PASSWORD`, `HMR_S
 
 ### Test suite
 
-`test/widget_test.dart` (smoke test), `test/chat_provider_test.dart` (repository-injected provider tests), `test/welcome_screen_test.dart` (layout + guest-path-never-a-dead-end).
+`test/widget_test.dart` (smoke test), `test/chat_provider_test.dart` (repository-injected provider tests), `test/welcome_screen_test.dart` (layout + guest-path-never-a-dead-end), `test/chat_bubble_test.dart` (in-bubble controls keep a ≥44dp hit area).
 
 ---
 
