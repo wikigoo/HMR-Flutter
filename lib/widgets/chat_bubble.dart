@@ -9,6 +9,11 @@ import '../l10n/app_strings.dart';
 import '../models/message_model.dart';
 import '../theme/app_theme.dart';
 
+/// Minimum interactive size for the small in-bubble controls (copy, report,
+/// retry). 44dp is the Material/WCAG 2.5.5 floor; the glyphs inside stay at
+/// their original sizes so the visual design is unchanged.
+const double _kMinTapTarget = 44;
+
 /// One message row.
 ///
 /// AI answers render as **plain prose** — no card, border, or avatar — so a
@@ -125,8 +130,10 @@ class ChatBubble extends StatelessWidget {
                 side: const BorderSide(color: Color(0x66FF5470), width: 0.8),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              // Was Size.zero + shrinkWrap, which collapsed the recovery
+              // action for a failed send to ~30dp tall. Error bubbles are the
+              // one place a miss-tap is most costly.
+              minimumSize: const Size(0, _kMinTapTarget),
             ),
             child: const Text(
               AppStrings.retry,
@@ -288,10 +295,16 @@ class _AiActionsState extends State<_AiActions> {
       label: label,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-          child: Icon(icon, size: 15, color: const Color(0x80FFFFFF)),
+        customBorder: const CircleBorder(),
+        // The glyph stays at 15dp so the row reads as before; only the hit
+        // area grows. The old symmetric(5, 2) padding gave a ~25x19dp target —
+        // InkWell, unlike IconButton, enforces no minimum of its own.
+        child: SizedBox(
+          width: _kMinTapTarget,
+          height: _kMinTapTarget,
+          child: Center(
+            child: Icon(icon, size: 15, color: const Color(0x80FFFFFF)),
+          ),
         ),
       ),
     );
