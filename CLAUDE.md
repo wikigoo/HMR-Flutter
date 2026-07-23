@@ -229,6 +229,28 @@ Signing is read from env vars in CI (`HMR_KEY_ALIAS`, `HMR_KEY_PASSWORD`, `HMR_S
 
 ---
 
+## Deployment (web)
+
+**`https://hmrbot.com/ai` is this Flutter web build**, served by the Cloudflare Worker **`hmr-flutter-bot`** — verified 2026-07-22 (the page returns `flutter_bootstrap` and the app's own `<title>`). It is an **assets-only** Worker: no script, just static file serving. The whole config is `wrangler.toml` at the repo root:
+
+```toml
+name = "hmr-flutter-bot"
+compatibility_date = "2026-07-20"
+[assets]
+directory = "./build/web"
+```
+
+Things that are not obvious from the repo:
+
+- **`build/` is gitignored — zero tracked files.** Cloudflare's checkout contains no `build/web`. The deploy therefore depends entirely on a **build command configured in the Cloudflare dashboard** (not in this repo) running `flutter build web --release`. If that command is ever cleared or fails, wrangler deploys an empty asset directory and blanks the live app. Nothing in the repo will warn you.
+- **The build is triggered by the Cloudflare↔GitHub integration, configured in the Cloudflare dashboard — not by anything under `.github/`.** It watches the whole repo with no path filter, so **every** commit to `main` ships a production deploy of the public app, including docs- or tooling-only commits (e.g. `.claude/**`). Contrast the GitHub Actions workflows, which are correctly scoped: `design-tokens-drift.yml` uses `paths:` and skips unrelated changes.
+- Narrowing this is a dashboard change (Worker → Settings → Builds → build watch paths) and **requires user action** — do not attempt it autonomously. Sensible watch paths: `lib/**`, `web/**`, `assets/**`, `pubspec.yaml`, `wrangler.toml`.
+- The `hmr-flutter-bot.workers.dev` hostname does not resolve; the Worker is reached through the `hmrbot.com` route.
+
+Treat any merge to `main` as a live production deploy of `hmrbot.com/ai` unless and until path filtering is configured.
+
+---
+
 ## Auth notes
 
 `google_sign_in ^7.2.0` is a **major, API-incompatible** rewrite from the `^6.x` line this app previously used:
@@ -240,7 +262,7 @@ Signing is read from env vars in CI (`HMR_KEY_ALIAS`, `HMR_KEY_PASSWORD`, `HMR_S
 - Because the web button is a real DOM element the GIS SDK controls (not a Flutter `GestureDetector`), a click there never returns through a Future. `AuthProvider.init()` subscribes to `GoogleSignIn.instance.authenticationEvents` as the single source of truth for `_user` on **every** platform — on web these events come from the platform's own stream; on native they're synthesized by the package from `authenticate()`/`attemptLightweightAuthentication()` return values. The subscription is cancelled in `AuthProvider.dispose()`.
 - Client id selection is unchanged in spirit: **web** gets `clientId = _webClientId` explicitly; **Android** gets `serverClientId = _webClientId` and no `clientId` at all — passing an Android clientId there fails sign-in with `ApiException 10` (`DEVELOPER_ERROR`), because the plugin resolves the Android OAuth client from the package name (`com.hmrbot`) + the release keystore's SHA-1 registered in Google Cloud, not from a supplied id.
 
-**Web build status:** it was deleted as "dead" on 2026-07-18 (`hmrbot.com/ai` was believed to be served entirely by a native Astro+React UI), then needed restoring on 2026-07-21 once the `google_sign_in` v7 bump broke `flutter analyze` and it became clear `authenticate()` doesn't work on web at all without the GIS button widget. Treat `web/` as a live target; verify against the current routing setup before assuming it's unused.
+**Web build status:** it was deleted as "dead" on 2026-07-18 (`hmrbot.com/ai` was believed to be served entirely by a native Astro+React UI), then needed restoring on 2026-07-21 once the `google_sign_in` v7 bump broke `flutter analyze` and it became clear `authenticate()` doesn't work on web at all without the GIS button widget. **Verified 2026-07-22: `web/` is a live production target** — `hmrbot.com/ai` serves this Flutter build via the `hmr-flutter-bot` Cloudflare Worker, not the Astro UI (see Deployment above). The earlier "believed to be Astro" assumption is wrong; do not act on it.
 
 **Release SHA-1 registration:** verified current as of 2026-07-21 — `android/app/google-services.json`'s `oauth_client` array contains an Android client (`326113602877-1t3ade...`) bound to `com.hmrbot` with `certificate_hash` `b0171f0b877321b973abe315ad5f08704fd0ca4b`, which matches the production keystore's (`hmr-production.jks`, alias `hmr-prod`) actual SHA-1. Android release sign-in is not blocked on OAuth registration. (`google-services.json` is gitignored — each machine needs its own copy from the Firebase/GCP console or a secrets store.)
 
@@ -280,6 +302,8 @@ After every code change, before committing:
 | # | Action | Blocker |
 |---|---|---|
 | 1 | Confirm whether Play App Signing is enrolled; if not, consider enrolling | Play Console |
+| 2 | Set build watch paths on the `hmr-flutter-bot` Worker so docs/tooling commits stop shipping production deploys | Cloudflare dashboard |
+| 3 | Confirm the Worker's dashboard build command actually runs `flutter build web --release` — if it is ever cleared, a deploy blanks `hmrbot.com/ai` | Cloudflare dashboard |
 
 ---
 
