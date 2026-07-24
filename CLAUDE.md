@@ -161,6 +161,31 @@ android/
 
 Base hue tokens (`HmrTokens` in `app_colors.g.dart`) are **generated** from `wikigoo/HMR-Design` (`tokens/colors.css`) via `bash tool/gen_tokens.sh` — the same source the HMR-Astro website uses, so brand colors stay in sync across properties. CI fails if the committed file drifts from source; never hand-edit it. App-specific composites (glass fills, bubble gradients) are hand-authored in `AppTheme`. **Never** use `.withOpacity()` anywhere — Dart 3.x lint flags it; use `Color(0xAARRGGBB)` literals instead. The Markdown stylesheet for AI bubbles is `AppTheme.markdown(context)`.
 
+### Icons and app artwork
+
+Every launcher, splash and web icon derives from **two hand-authored masters** in `assets/images/`:
+
+| Master | What it is |
+|---|---|
+| `hmr_launcher.png` (512²) | The mark on a dark navy squircle. **The only artwork that carries a background.** |
+| `hmr-mark.png` (1024²) | The bare mark, transparent, eyes knocked out. The one image bundled at runtime (`HmrAvatar`). |
+
+Everything else is generated — do not hand-edit the derivatives:
+
+```bash
+python tool/gen_icons.py             # padded/masked variants + all web icons (needs Pillow)
+dart run flutter_launcher_icons      # Android + iOS, from the two masters
+dart run flutter_native_splash:create
+```
+
+Non-obvious rules:
+
+- **`tool/gen_icons.py` owns the web icons, not `flutter_launcher_icons`** — that tool derives every web output from one image, but the favicon must be transparent while a maskable icon must be opaque and padded. `web: generate: false` in `pubspec.yaml` keeps it from clobbering them.
+- **Safe-zone padding is baked into the generated PNGs**, so `adaptive_icon_foreground_inset` is pinned to `0`. `MASKED_W = 0.62` (mark width ÷ canvas) is the one constant governing every surface the OS crops — adaptive icon, maskable web icon, Android 12+ splash. The mark's circumscribed circle is ≈ its own width, so 0.62 clears the adaptive icon's guaranteed 66.7% circle with margin.
+- **The mark's eyes are knockout holes.** On HMR's dark surfaces that is the intent (they show `avatarDisc`/`navy950` through). The transparent *web* icons fill them with navy instead, because a light-theme browser tab would otherwise erase the eyes and leave a featureless blob.
+- `remove_alpha_ios: true` + `background_color_ios: "#05070F"` — the App Store rejects icons with an alpha channel, and the squircle master has transparent corners.
+- Only `hmr-mark.png` is listed under `flutter.assets`; the other masters are build-time inputs and must not be bundled.
+
 ### Fonts
 
 - `Vazirmatn` — all Persian UI text (`AppTheme.fontFa`); leads Persian styles, with `Rubik` as `fontFamilyFallback` so embedded Latin (device names, numerals) still renders in Rubik.
